@@ -3,194 +3,275 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BR.COIN Rewards</title>
+    <title>BR.COIN | Premium Rewards</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --red: #ff3b3b; --off-white: #fafafa; --black: #000000; }
-        * { box-sizing: border-box; font-family: 'Arial', sans-serif; }
-        body { background: var(--off-white); margin: 0; color: var(--black); overflow-x: hidden; }
-
-        /* Professional 1-Second Splash */
-        #splash {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #ffffff; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; z-index: 99999;
-            opacity: 1; transition: opacity 0.5s ease;
+        /* Unique Neobrutalist CSS */
+        :root {
+            --accent: #ff3b3b;
+            --bg: #fdfaf5;
+            --text: #000000;
+            --border: 3px solid #000000;
+            --shadow: 5px 5px 0px #000000;
         }
-        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--red); border-radius: 50%; width: 45px; height: 45px; animation: spin 0.7s linear infinite; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        * { box-sizing: border-box; font-family: 'Helvetica Black', 'Arial Bold', sans-serif; }
+        
+        body { 
+            background-color: var(--bg); 
+            margin: 0; 
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* splash stays on top */
+        #splash {
+            position: fixed; inset: 0; background: #fff;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 10000; transition: 0.5s;
+        }
 
         .hidden { display: none !important; }
-        .card { background: white; border: 2px solid var(--black); box-shadow: 4px 4px 0px var(--black); padding: 20px; margin: 15px; border-radius: 2px; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid var(--black); border-radius: 0; font-weight: bold; outline: none; }
-        button { width: 100%; padding: 12px; background: var(--red); color: white; border: 2px solid var(--black); box-shadow: 3px 3px 0px var(--black); font-weight: 900; cursor: pointer; text-transform: uppercase; }
-        button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px var(--black); }
 
-        /* UI Styling */
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; border-bottom: 2px solid var(--black); }
-        .coin-box { background: var(--red); color: white; border: 2px solid var(--black); padding: 5px 15px; text-align: center; min-width: 110px; }
-        .diamond-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 15px; }
-        .diamond-item { border: 2px solid var(--black); padding: 15px; text-align: center; background: white; cursor: pointer; font-weight: bold; font-size: 14px; }
-        .banner { background: var(--red); color: white; text-align: center; padding: 15px; font-weight: 900; border-top: 2px solid var(--black); border-bottom: 2px solid var(--black); margin: 20px 0; }
+        /* Unique Containers */
+        .card {
+            background: #fff;
+            border: var(--border);
+            box-shadow: var(--shadow);
+            margin: 15px;
+            padding: 20px;
+            transition: 0.2s;
+        }
+
+        /* Header Style */
+        .header {
+            background: #fff;
+            border-bottom: var(--border);
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky; top: 0; z-index: 100;
+        }
+
+        .coin-badge {
+            background: var(--accent);
+            color: #fff;
+            border: var(--border);
+            padding: 5px 15px;
+            box-shadow: 3px 3px 0px #000;
+            text-align: center;
+        }
+
+        /* Buttons & Inputs */
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: var(--border);
+            font-size: 16px;
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: var(--accent);
+            color: white;
+            border: var(--border);
+            box-shadow: 4px 4px 0px #000;
+            font-weight: 900;
+            text-transform: uppercase;
+            cursor: pointer;
+            letter-spacing: 1px;
+        }
+
+        button:active {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0px #000;
+        }
+
+        /* Diamond Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding: 15px;
+        }
+
+        .diamond-card {
+            background: #fff;
+            border: var(--border);
+            padding: 20px;
+            text-align: center;
+            box-shadow: 3px 3px 0px #000;
+            cursor: pointer;
+        }
+
+        .diamond-card:hover { background: #fff5f5; }
+
+        .banner {
+            background: #000;
+            color: #fff;
+            padding: 15px;
+            text-align: center;
+            font-weight: 900;
+            transform: rotate(-1deg);
+            margin: 20px -5px;
+        }
     </style>
 </head>
 <body>
 
     <div id="splash">
-        <h1 style="letter-spacing: 5px; color: var(--red); margin-bottom: 20px;">BR.COIN</h1>
-        <div class="spinner"></div>
+        <h1 style="font-size: 3rem; margin: 0;">BR.COIN</h1>
+        <p style="letter-spacing: 5px;">LOADING...</p>
     </div>
 
     <div id="page-auth" class="hidden">
-        <div class="card" style="max-width: 400px; margin: 50px auto;">
-            <h2 id="auth-title" style="text-align:center; margin-top:0;">LOGIN</h2>
-            <input type="email" id="auth-email" placeholder="EMAIL ADDRESS">
-            <input type="text" id="auth-uid" placeholder="FREE FIRE UID">
-            <input type="password" id="auth-pass" placeholder="PASSWORD">
-            <input type="password" id="auth-pass-confirm" class="hidden" placeholder="CONFIRM PASSWORD">
-            <button onclick="processAuth()" id="btn-auth-action">PROCEED</button>
-            <p onclick="toggleAuthMode()" style="text-align:center; font-size:12px; cursor:pointer; margin-top:15px; font-weight:bold; text-decoration: underline;">CREATE NEW ACCOUNT?</p>
+        <div class="card" style="max-width: 400px; margin: 80px auto;">
+            <h2 id="auth-title" style="margin-top:0;">LOGIN</h2>
+            <input type="email" id="email" placeholder="GMAIL ADDRESS">
+            <input type="text" id="uid" placeholder="FREE FIRE UID">
+            <input type="password" id="pass" placeholder="PASSWORD">
+            <input type="password" id="pass-confirm" class="hidden" placeholder="CONFIRM PASSWORD">
+            <button onclick="handleAuth()">ENTER SYSTEM</button>
+            <p onclick="switchAuth()" style="text-align:center; cursor:pointer; font-weight:bold; margin-top:15px; text-decoration:underline;">NEW HERE? REGISTER</p>
         </div>
     </div>
 
     <div id="page-main" class="hidden">
         <div class="header">
-            <div style="background:var(--red); color:white; padding:5px; font-size:10px; font-weight:900; line-height:1;">FREE<br>DIAMOND</div>
-            <div style="font-size:11px; font-weight:900;">
-                USER: <span id="user-name" style="color:var(--red)">...</span><br>
-                UID: <span id="user-uid-val">...</span>
+            <div>
+                <div style="font-size:10px; opacity:0.6;">CURRENT USER</div>
+                <div id="disp-email" style="font-weight:900;">...</div>
+                <div style="font-size:10px; margin-top:5px;">UID: <span id="disp-uid">...</span></div>
             </div>
-            <div class="coin-box">
-                <small style="font-size:10px">BR.COIN</small><br>
-                <b id="user-balance" style="font-size:20px">00.0</b>
-            </div>
-        </div>
-
-        <div style="padding: 15px;">
-            <h3 style="margin-top:0">2. Top-up Amount</h3>
-            <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <button style="width:auto; padding:6px 20px; font-size:12px;">PURCHASE</button>
-                <button style="width:auto; padding:6px 20px; font-size:12px; background:#fff; color:#000;">REDEEM</button>
-            </div>
-
-            <div class="diamond-grid">
-                <div class="diamond-item" onclick="reqRedeem(1426, 2100)">💎 1,426</div>
-                <div class="diamond-item" onclick="reqRedeem(3565, 5240)">💎 3,565</div>
-                <div class="diamond-item" onclick="reqRedeem(7130, 10480)">💎 7,130</div>
-                <div class="diamond-item" onclick="reqRedeem(14260, 20960)">💎 14,260</div>
+            <div class="coin-badge">
+                <div style="font-size:10px;">BALANCE</div>
+                <div id="disp-balance" style="font-size:20px; font-weight:900;">0.0</div>
             </div>
         </div>
 
-        <div class="banner">INVITE FRIENDS TO GET BIG REWARDS</div>
-        
-        <div class="card" style="text-align:center; background:#000; color:white;">
-            <p style="font-size:11px; margin:0; opacity: 0.8;">REFERRAL CODE</p>
-            <h2 id="ref-code-text" style="letter-spacing:5px; margin:10px 0;">-------</h2>
+        <div class="banner">FREE FIRE DIAMOND TOP-UP</div>
+
+        <div class="grid">
+            <div class="diamond-card" onclick="redeem(1426)">💎 1,426<br><small>2100 COINS</small></div>
+            <div class="diamond-card" onclick="redeem(3565)">💎 3,565<br><small>5240 COINS</small></div>
+            <div class="diamond-card" onclick="redeem(7130)">💎 7,130<br><small>10480 COINS</small></div>
+            <div class="diamond-card" onclick="redeem(14260)">💎 14,260<br><small>20960 COINS</small></div>
         </div>
 
-        <div style="padding:20px;">
-            <button onclick="gotoTasks()" style="background:#333;">COMPLETE TASKS</button>
+        <div class="card" style="background:#000; color:#fff; text-align:center;">
+            <div style="font-size:10px;">YOUR REFERRAL CODE</div>
+            <div id="disp-ref" style="font-size:24px; letter-spacing:5px; margin:10px 0;">-------</div>
+            <p style="font-size:11px; color:var(--accent);">EARN 70 COINS PER INVITE</p>
+        </div>
+
+        <div style="padding:15px;">
+            <button style="background:#000;" onclick="alert('Task Page Loading...')">GO TO TASK CENTER</button>
         </div>
     </div>
 
     <div id="page-admin" class="hidden" style="padding:20px;">
         <div class="card">
-            <h2 style="margin-top:0;">ADMIN PANEL</h2>
-            <input type="text" id="adm-task-name" placeholder="Task Name">
-            <input type="number" id="adm-task-reward" placeholder="Coin Amount">
-            <input type="text" id="adm-task-url" placeholder="Task Link">
-            <button onclick="adminAddTask()">POST NEW TASK</button>
+            <h2>ADMIN PANEL</h2>
+            <input type="text" id="task-title" placeholder="Task Name">
+            <input type="number" id="task-reward" placeholder="Coin Amount">
+            <input type="text" id="task-link" placeholder="Task URL">
+            <button onclick="addTask()">POST TASK</button>
         </div>
     </div>
 
     <script>
-        // --- EMERGENCY LOADING FIX ---
-        // This runs immediately and hides the splash after 1 second NO MATTER WHAT.
-        setTimeout(function() {
-            const splash = document.getElementById('splash');
-            if (splash) {
-                splash.style.opacity = "0";
-                setTimeout(() => { 
-                    splash.style.display = "none"; 
-                    // Now try to start the app logic
-                    if(typeof supabase !== 'undefined') startApp();
-                    else document.getElementById('page-auth').classList.remove('hidden');
-                }, 500);
-            }
-        }, 1000);
-
-        // --- SUPABASE SETUP ---
         const SB_URL = "https://zzehzlqhgjevwauycgdi.supabase.co"; 
         const SB_KEY = "sb_publishable_cs7l1-FeQnmB3Sl0bHfK7g_KK5qKlLh";
-        let client;
-        
-        // Wait for Supabase to be ready
-        function startApp() {
+        let sb;
+
+        // 1. FORCED LOADING FINISH
+        window.onload = () => {
+            setTimeout(() => {
+                document.getElementById('splash').style.opacity = "0";
+                setTimeout(() => {
+                    document.getElementById('splash').style.display = "none";
+                    initApp();
+                }, 500);
+            }, 1000);
+        };
+
+        function initApp() {
             try {
-                client = supabase.createClient(SB_URL, SB_KEY);
+                sb = supabase.createClient(SB_URL, SB_KEY);
                 checkUser();
             } catch (e) {
+                console.error("Supabase load error");
                 document.getElementById('page-auth').classList.remove('hidden');
             }
         }
 
         async function checkUser() {
-            const { data: { user } } = await client.auth.getUser();
-            if (user) loadProfile(user);
+            const { data: { user } } = await sb.auth.getUser();
+            if (user) loadData(user);
             else document.getElementById('page-auth').classList.remove('hidden');
         }
 
-        function toggleAuthMode() {
-            isRegister = !isRegister;
-            document.getElementById('auth-title').innerText = isRegister ? "REGISTER" : "LOGIN";
-            document.getElementById('auth-pass-confirm').classList.toggle('hidden');
-            document.getElementById('btn-auth-action').innerText = isRegister ? "SIGN UP" : "ENTER";
+        let isReg = false;
+        function switchAuth() {
+            isReg = !isReg;
+            document.getElementById('auth-title').innerText = isReg ? "REGISTER" : "LOGIN";
+            document.getElementById('pass-confirm').classList.toggle('hidden');
         }
 
-        async function processAuth() {
-            const email = document.getElementById('auth-email').value;
-            const pass = document.getElementById('auth-pass').value;
-            const uid = document.getElementById('auth-uid').value;
+        async function handleAuth() {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('pass').value;
+            const uid = document.getElementById('uid').value;
 
-            if (isRegister) {
-                const { data, error } = await client.auth.signUp({ email, password: pass });
+            if (isReg) {
+                const { data, error } = await sb.auth.signUp({ email, password: pass });
                 if (error) return alert(error.message);
-                const ref = Math.random().toString(36).substring(2, 8).toUpperCase();
-                await client.from('profiles').insert([{ id: data.user.id, email, ff_uid: uid, referral_code: ref }]);
+                const refCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+                await sb.from('profiles').insert([{ id: data.user.id, email, ff_uid: uid, referral_code: refCode }]);
                 alert("Success! Now Login.");
                 location.reload();
             } else {
-                const { data, error } = await client.auth.signInWithPassword({ email, password: pass });
+                const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
                 if (error) return alert(error.message);
-                loadProfile(data.user);
+                loadData(data.user);
             }
         }
 
-        async function loadProfile(user) {
-            const { data: profile } = await client.from('profiles').select('*').eq('id', user.id).single();
+        async function loadData(user) {
             if (user.email === 'sa7530006@gmail.com') {
                 document.getElementById('page-auth').classList.add('hidden');
                 document.getElementById('page-admin').classList.remove('hidden');
                 return;
             }
-            document.getElementById('user-name').innerText = profile.email.split('@')[0].toUpperCase();
-            document.getElementById('user-uid-val').innerText = profile.ff_uid;
-            document.getElementById('user-balance').innerText = parseFloat(profile.br_coins || 0).toFixed(1);
-            document.getElementById('ref-code-text').innerText = profile.referral_code;
-            document.getElementById('page-auth').classList.add('hidden');
-            document.getElementById('page-main').classList.remove('hidden');
+
+            const { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).single();
+            if (profile) {
+                document.getElementById('disp-email').innerText = profile.email.toUpperCase();
+                document.getElementById('disp-uid').innerText = profile.ff_uid;
+                document.getElementById('disp-balance').innerText = parseFloat(profile.br_coins || 0).toFixed(1);
+                document.getElementById('disp-ref').innerText = profile.referral_code;
+                
+                document.getElementById('page-auth').classList.add('hidden');
+                document.getElementById('page-main').classList.remove('hidden');
+            }
         }
 
-        async function adminAddTask() {
-            const title = document.getElementById('adm-task-name').value;
-            const reward = document.getElementById('adm-task-reward').value;
-            const link = document.getElementById('adm-task-url').value;
-            await client.from('tasks').insert([{ title, reward, link }]);
-            alert("Task Added!");
+        async function addTask() {
+            const title = document.getElementById('task-title').value;
+            const reward = document.getElementById('task-reward').value;
+            const link = document.getElementById('task-link').value;
+            const { error } = await sb.from('tasks').insert([{ title, reward, link }]);
+            if (error) alert(error.message);
+            else alert("Task Added!");
         }
 
-        function reqRedeem(d, cost) { alert("Redeem Requested for " + d + " Diamonds!"); }
-        function gotoTasks() { alert("Loading tasks..."); }
+        function redeem(amt) { alert("Redeem request sent for " + amt + " Diamonds!"); }
     </script>
 </body>
-    </html>
+                                                               </html>
