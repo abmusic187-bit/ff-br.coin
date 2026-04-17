@@ -3,141 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BR.COIN Pro</title>
+    <title>FF BR.COIN</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --bg: #05070a;
-            --card: #10141d;
-            --accent: #00f2ff;
-            --text: #ffffff;
-            --dim: #7d8590;
-            --success: #00ff88;
-        }
-
+        :root { --bg: #05070a; --card: #111827; --accent: #00f2ff; --text: #ffffff; --dim: #9ca3af; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; }
         .hidden { display: none !important; }
+
+        /* Professional Header */
+        .app-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 20px; background: var(--card); border-bottom: 1px solid #1f2937;
+            position: sticky; top: 0; z-index: 1000;
+        }
+        .logo { font-weight: 900; color: var(--accent); letter-spacing: 1px; font-size: 18px; }
+        .balance-chip { background: #1f2937; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--accent); font-size: 14px; }
 
         /* Navigation */
         .nav-bar {
-            position: fixed; bottom: 0; width: 100%; background: rgba(16, 20, 29, 0.95);
-            display: flex; justify-content: space-around; padding: 15px 0;
-            border-top: 1px solid #222; backdrop-filter: blur(10px); z-index: 1000;
+            position: fixed; bottom: 0; width: 100%; background: #000;
+            display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #1f2937; z-index: 1000;
         }
-        .nav-item { color: var(--dim); font-size: 11px; cursor: pointer; text-transform: uppercase; font-weight: 700; }
+        .nav-item { color: var(--dim); font-size: 12px; cursor: pointer; font-weight: bold; }
         .nav-item.active { color: var(--accent); }
 
-        /* UI Components */
-        .card { background: var(--card); border-radius: 20px; padding: 25px; margin: 15px; border: 1px solid #1f242d; }
-        .btn { 
-            width: 100%; padding: 16px; background: var(--accent); color: #000; 
-            border: none; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.2s;
-        }
-        .btn:active { transform: scale(0.98); }
-        .btn-verify { background: #222; color: var(--dim); cursor: default; }
-
-        input { 
-            width: 100%; padding: 15px; margin: 10px 0; background: #000; 
-            border: 1px solid #222; color: #fff; border-radius: 12px; outline: none;
-        }
-
-        /* Profile Special */
-        .profile-coin-card {
-            background: linear-gradient(135deg, #00f2ff 0%, #0066ff 100%);
-            padding: 40px 20px; border-radius: 24px; text-align: center; color: #000;
-            margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0, 242, 255, 0.2);
-        }
-
-        /* Admin Submission List */
-        .sub-item { background: #1a1f2b; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 4px solid var(--accent); }
+        /* UI */
+        .card { background: var(--card); border-radius: 16px; padding: 20px; margin: 15px; border: 1px solid #1f2937; }
+        .diamond-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px; }
+        .diamond-box { background: var(--card); border: 2px solid #1f2937; border-radius: 16px; padding: 20px; text-align: center; }
+        .diamond-box.selected { border-color: var(--accent); background: rgba(0, 242, 255, 0.05); }
+        
+        .btn { width: 100%; padding: 15px; background: var(--accent); color: #000; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; }
+        input { width: 100%; padding: 14px; margin: 8px 0; background: #000; border: 1px solid #374151; color: white; border-radius: 10px; }
     </style>
 </head>
 <body>
 
+    <header class="app-header hidden" id="main-header">
+        <div class="logo">FF BR.COIN</div>
+        <div class="balance-chip"><span id="header-balance">0.0</span> <small>C</small></div>
+    </header>
+
     <div id="splash" style="position:fixed; inset:0; background:#000; display:flex; align-items:center; justify-content:center; z-index:10000;">
-        <h1 style="color:var(--accent); letter-spacing:8px;">BR.COIN</h1>
+        <h2 style="color:var(--accent); letter-spacing:5px;">LOADING</h2>
     </div>
 
     <div id="view-auth" class="hidden">
-        <div class="card" style="max-width:400px; margin: 80px auto;">
+        <div class="card" style="max-width:400px; margin: 60px auto;">
             <h2 id="auth-label" style="text-align:center;">Login</h2>
             <input type="email" id="f-email" placeholder="Gmail">
             <input type="text" id="f-uid" placeholder="FF UID">
             <input type="password" id="f-pass" placeholder="Password">
             <input type="password" id="f-pass-confirm" class="hidden" placeholder="Confirm Password">
-            <button class="btn" onclick="authAction()">Continue</button>
+            <button class="btn" onclick="authAction()">Enter App</button>
             <p onclick="toggleAuth()" style="text-align:center; color:var(--dim); margin-top:20px; cursor:pointer;">New Account / Login</p>
         </div>
     </div>
 
     <div id="view-home" class="view hidden">
-        <div style="padding: 20px;"><h2 style="margin:0;">Store</h2></div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:15px;">
-            <div class="card" style="margin:0; text-align:center;" onclick="buy(1426, 2100)">💎 1,426<br><small style="color:var(--accent)">2,100 C</small></div>
-            <div class="card" style="margin:0; text-align:center;" onclick="buy(3565, 5240)">💎 3,565<br><small style="color:var(--accent)">5,240 C</small></div>
+        <div style="padding: 10px 20px;"><h4>Select Diamond Pack</h4></div>
+        <div class="diamond-grid">
+            <div class="diamond-box" onclick="selectPack(this, 1426, 2100)">💎 1,426<br><small>2,100 C</small></div>
+            <div class="diamond-box" onclick="selectPack(this, 3565, 5240)">💎 3,565<br><small>5,240 C</small></div>
+            <div class="diamond-box" onclick="selectPack(this, 7130, 10480)">💎 7,130<br><small>10,480 C</small></div>
+            <div class="diamond-box" onclick="selectPack(this, 14260, 20960)">💎 14,260<br><small>20,960 C</small></div>
         </div>
+        <div style="padding: 15px;"><button class="btn" onclick="processRedeem()">REDEEM NOW</button></div>
     </div>
 
     <div id="view-tasks" class="view hidden">
-        <div style="padding:20px;"><h2>Earn Coins</h2></div>
         <div id="task-list"></div>
     </div>
 
     <div id="view-profile" class="view hidden">
-        <div style="padding: 20px;">
-            <div class="profile-coin-card">
-                <small style="font-weight:800; opacity:0.7; text-transform:uppercase;">Current Balance</small>
-                <h1 id="p-balance" style="margin:10px 0; font-size:48px;">0.0</h1>
-                <div style="font-weight:bold;">BR.COIN</div>
-            </div>
-
-            <div class="card">
-                <div style="margin-bottom:20px;">
-                    <label style="color:var(--dim); font-size:11px; font-weight:800; display:block; margin-bottom:5px;">REGISTERED EMAIL</label>
-                    <div id="p-email" style="font-size:18px; font-weight:600;">...</div>
-                </div>
-                <div style="margin-bottom:20px;">
-                    <label style="color:var(--dim); font-size:11px; font-weight:800; display:block; margin-bottom:5px;">FREE FIRE UID</label>
-                    <div id="p-uid" style="font-size:18px; font-weight:600;">...</div>
-                </div>
-                <div style="background:#000; padding:20px; border-radius:15px; text-align:center;">
-                    <label style="color:var(--dim); font-size:11px; font-weight:800;">YOUR REFERRAL CODE</label>
-                    <div id="p-ref" style="font-size:24px; color:var(--accent); font-weight:900; letter-spacing:5px; margin-top:8px;">-------</div>
-                </div>
-                <button onclick="logout()" style="background:#ff3b3b; color:#fff; margin-top:30px; box-shadow:none;" class="btn">Logout</button>
-            </div>
+        <div class="card" style="text-align:center;">
+            <div style="font-size:12px; color:var(--dim);">ACCOUNT GMAIL</div>
+            <div id="p-email" style="font-weight:bold; margin-bottom:20px;">...</div>
+            <div style="font-size:12px; color:var(--dim);">FREE FIRE UID</div>
+            <div id="p-uid" style="font-weight:bold; margin-bottom:20px;">...</div>
+            <button onclick="logout()" style="background:#ef4444; color:white;" class="btn">LOGOUT</button>
         </div>
     </div>
 
     <div id="view-admin" class="view hidden">
         <div class="card">
-            <h3>Admin: Create Task</h3>
-            <input type="text" id="adm-name" placeholder="Task Title">
+            <h3>Admin: New Task</h3>
+            <input type="text" id="adm-name" placeholder="Task Name">
             <input type="number" id="adm-reward" placeholder="Coins">
-            <input type="text" id="adm-link" placeholder="Link">
+            <input type="text" id="adm-link" placeholder="Task Link">
             <button class="btn" onclick="postTask()">Post Task</button>
         </div>
-        <div class="card">
-            <h3>Pending Verification</h3>
-            <div id="admin-pending">No requests yet.</div>
-        </div>
+        <div id="admin-pending" style="padding:15px;"></div>
     </div>
 
     <nav id="main-nav" class="nav-bar hidden">
         <div class="nav-item active" onclick="switchV('home', this)">Home</div>
         <div class="nav-item" onclick="switchV('tasks', this)">Tasks</div>
         <div class="nav-item" onclick="switchV('profile', this)">Profile</div>
-        <div id="nav-admin" class="nav-item hidden" onclick="switchV('admin', this)" style="color:#ffcc00;">Admin</div>
+        <div id="nav-admin" class="nav-item hidden" onclick="switchV('admin', this)" style="color:#ffcc00;">ADMIN</div>
     </nav>
 
     <script>
         const SB_URL = "https://zzehzlqhgjevwauycgdi.supabase.co"; 
         const SB_KEY = "sb_publishable_cs7l1-FeQnmB3Sl0bHfK7g_KK5qKlLh";
         const sb = supabase.createClient(SB_URL, SB_KEY);
-        let userP = null;
-        let isReg = false;
-        const ADMIN = "sa7530006@gmail.com";
+        let userP = null, selected = null, adminEmail = "sa7530006@gmail.com";
 
         window.onload = () => { setTimeout(() => { document.getElementById('splash').style.display='none'; init(); }, 1000); };
 
@@ -147,24 +118,24 @@
         }
 
         async function loadApp(user) {
-            if (user.email === ADMIN) {
-                document.getElementById('nav-admin').classList.remove('hidden');
-                switchV('admin', document.getElementById('nav-admin'));
-                refreshSubmissions();
-            } else {
-                switchV('home', document.querySelector('.nav-item'));
-            }
-
             const { data: prof } = await sb.from('profiles').select('*').eq('id', user.id).single();
             userP = prof;
             
+            // UI Sync
+            document.getElementById('header-balance').innerText = parseFloat(prof.br_coins || 0).toFixed(1);
             document.getElementById('p-email').innerText = user.email;
             document.getElementById('p-uid').innerText = prof.ff_uid;
-            document.getElementById('p-balance').innerText = parseFloat(prof.br_coins || 0).toFixed(1);
-            document.getElementById('p-ref').innerText = prof.referral_code;
-
+            
             document.getElementById('view-auth').classList.add('hidden');
+            document.getElementById('main-header').classList.remove('hidden');
             document.getElementById('main-nav').classList.remove('hidden');
+
+            if (user.email === adminEmail) {
+                document.getElementById('nav-admin').classList.remove('hidden');
+                switchV('admin', document.getElementById('nav-admin'));
+            } else {
+                switchV('home', document.querySelector('.nav-item'));
+            }
         }
 
         function switchV(v, el) {
@@ -173,52 +144,63 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             if(el) el.classList.add('active');
             if(v === 'tasks') fetchT();
+            if(v === 'admin') refreshAdmin();
         }
 
+        // --- DIAMOND SELECTION ---
+        function selectPack(el, d, cost) {
+            document.querySelectorAll('.diamond-box').forEach(b => b.classList.remove('selected'));
+            el.classList.add('selected');
+            selected = { diamonds: d, cost: cost };
+        }
+
+        function processRedeem() {
+            if(!selected) return alert("Select a diamond box first!");
+            if(userP.br_coins < selected.cost) return alert("Not enough coins!");
+            alert("Your diamond redeem in 2 business day");
+        }
+
+        // --- TASK LOGIC (One-time only) ---
         async function fetchT() {
-            const { data } = await sb.from('tasks').select('*');
+            const { data: allTasks } = await sb.from('tasks').select('*');
+            const { data: doneTasks } = await sb.from('task_submissions').select('task_id').eq('user_id', userP.id);
+            const doneIds = doneTasks.map(d => d.task_id);
+
             let h = '';
-            data.forEach(t => {
-                h += `<div class="card" id="task-${t.id}">
+            allTasks.forEach(t => {
+                const isDone = doneIds.includes(t.id);
+                h += `<div class="card">
                         <b>${t.title}</b> <span style="color:var(--accent); float:right">+${t.reward}</span><br>
-                        <button id="btn-${t.id}" class="btn" style="height:40px; padding:0; margin-top:15px;" onclick="startTask('${t.id}', '${t.link}')">Start Task</button>
+                        <button class="btn ${isDone?'hidden':''}" style="margin-top:15px;" onclick="startTask('${t.id}', '${t.link}')">Start Task</button>
+                        ${isDone ? '<div style="color:var(--dim); margin-top:10px; font-weight:bold;">TASK COMPLETED</div>' : ''}
                       </div>`;
             });
-            document.getElementById('task-list').innerHTML = h || 'No Tasks';
+            document.getElementById('task-list').innerHTML = h || '<div style="text-align:center; padding:20px;">No Tasks</div>';
         }
 
-        function startTask(id, link) {
+        async function startTask(id, link) {
             window.open(link, '_blank');
-            const btn = document.getElementById('btn-' + id);
-            btn.innerText = "Verifying...";
-            btn.classList.add('btn-verify');
-            btn.onclick = null;
-            // Send to Admin
-            sb.from('task_submissions').insert([{ user_id: userP.id, task_id: id, status: 'pending' }]).then(() => {
-                console.log("Submitted");
-            });
+            await sb.from('task_submissions').insert([{ user_id: userP.id, task_id: id, status: 'pending' }]);
+            alert("Verification started! Refreshing list...");
+            fetchT();
         }
 
-        // ADMIN FUNCTIONS
-        async function refreshSubmissions() {
-            const { data } = await sb.from('task_submissions').select('*, profiles(email, ff_uid), tasks(title, reward)').eq('status', 'pending');
-            let h = '';
+        // --- ADMIN FUNCTIONS ---
+        async function refreshAdmin() {
+            const { data } = await sb.from('task_submissions').select('*, profiles(email), tasks(title, reward)').eq('status', 'pending');
+            let h = '<h4>Pending Proofs</h4>';
             data.forEach(s => {
-                h += `<div class="sub-item">
-                        <b>${s.profiles.email}</b><br>UID: ${s.profiles.ff_uid}<br>
-                        Task: ${s.tasks.title} (${s.tasks.reward} C)
-                        <button class="btn" style="height:30px; margin-top:10px;" onclick="approve('${s.id}', '${s.user_id}', ${s.tasks.reward})">OK / Give Coins</button>
-                      </div>`;
+                h += `<div class="card">${s.profiles.email}<br>${s.tasks.title}<br>
+                      <button class="btn" style="height:35px; padding:0;" onclick="approve('${s.id}', '${s.user_id}', ${s.tasks.reward})">OK / Give Reward</button></div>`;
             });
-            document.getElementById('admin-pending').innerHTML = h || 'Nothing to verify.';
+            document.getElementById('admin-pending').innerHTML = h;
         }
 
         async function approve(sid, uid, reward) {
             await sb.from('task_submissions').update({ status: 'approved' }).eq('id', sid);
-            const { data: u } = await sb.from('profiles').select('br_coins').eq('id', uid).single();
-            await sb.from('profiles').update({ br_coins: (u.br_coins + reward) }).eq('id', uid);
-            alert("Reward Sent!");
-            refreshSubmissions();
+            const { data } = await sb.from('profiles').select('br_coins').eq('id', uid).single();
+            await sb.from('profiles').update({ br_coins: (data.br_coins + reward) }).eq('id', uid);
+            alert("Approved!"); refreshAdmin();
         }
 
         async function postTask() {
@@ -226,7 +208,7 @@
             const reward = document.getElementById('adm-reward').value;
             const link = document.getElementById('adm-link').value;
             await sb.from('tasks').insert([{ title, reward, link }]);
-            alert("Task Live!");
+            alert("Posted!");
         }
 
         function toggleAuth() { isReg = !isReg; document.getElementById('auth-label').innerText = isReg ? "Register" : "Login"; document.getElementById('f-pass-confirm').classList.toggle('hidden'); }
@@ -237,14 +219,13 @@
                 const { data } = await sb.auth.signUp({ email, password: pass });
                 const ref = Math.random().toString(36).substring(2, 8).toUpperCase();
                 await sb.from('profiles').insert([{ id: data.user.id, email, ff_uid: document.getElementById('f-uid').value, referral_code: ref }]);
-                alert("Done! Now Login."); location.reload();
+                alert("Account created!"); location.reload();
             } else {
                 const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
                 if(error) alert(error.message); else loadApp(data.user);
             }
         }
         function logout() { sb.auth.signOut(); location.reload(); }
-        function buy(d, c) { if(userP.br_coins < c) alert("No Coins!"); else alert("Request Sent!"); }
     </script>
 </body>
     </html>
