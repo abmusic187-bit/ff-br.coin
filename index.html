@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BR.COIN Rewards</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <style>
+        :root { --primary-red: #ff3b3b; --bg-gray: #f9f9f9; }
+        body { font-family: 'Arial', sans-serif; margin: 0; background: var(--bg-gray); color: #333; }
+        
+        /* Splash Screen */
+        #splash {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: white; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 9999;
+        }
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid var(--primary-red); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Auth Pages */
+        .auth-container { max-width: 400px; margin: 50px auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: var(--primary-red); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+
+        /* Main Dashboard (Matching Image) */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; border-bottom: 2px solid #eee; }
+        .free-diamond-tag { background: var(--primary-red); color: white; padding: 5px 10px; font-weight: bold; font-size: 12px; }
+        .br-coin-box { background: #fff; border: 2px solid var(--primary-red); padding: 5px 15px; border-radius: 20px; text-align: center; box-shadow: 0 4px 0px var(--primary-red); }
+        
+        .top-up-section { padding: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .item { background: white; border: 1px solid #ddd; padding: 15px; border-radius: 8px; text-align: center; cursor: pointer; }
+        
+        .referral-banner { background: var(--primary-red); color: white; text-align: center; padding: 15px; margin: 20px 0; font-weight: bold; font-size: 20px; }
+        .ref-code-display { background: #555; color: white; padding: 10px; text-align: center; font-family: monospace; letter-spacing: 2px; }
+        
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="splash">
+        <h1 style="color:var(--primary-red)">BR.COIN</h1>
+        <div class="loader"></div>
+    </div>
+
+    <div id="auth-page" class="auth-container hidden">
+        <h2 id="auth-title">Login</h2>
+        <input type="email" id="email" placeholder="Email">
+        <input type="text" id="uid" placeholder="Free Fire UID">
+        <input type="password" id="password" placeholder="Password">
+        <input type="password" id="confirm-password" class="hidden" placeholder="Confirm Password">
+        <div class="g-recaptcha" data-sitekey="YOUR_RECAPTCHA_KEY"></div>
+        <button onclick="handleAuth()" id="auth-btn">Login</button>
+        <p onclick="toggleAuth()" style="text-align:center; cursor:pointer; color: blue;">Switch to Register</p>
+    </div>
+
+    <div id="main-page" class="hidden">
+        <div class="header">
+            <div class="free-diamond-tag">FREE<br>DIAMOND</div>
+            <div style="font-size: 12px;">USERNAME: <span id="display-email">...</span><br>UID: <span id="display-uid">...</span></div>
+            <div class="br-coin-box">
+                <span style="font-size: 14px; font-weight: bold;">BR.COIN</span><br>
+                <span id="display-balance" style="font-size: 18px;">00.0</span>
+            </div>
+        </div>
+
+        <div class="top-up-section">
+            <h3><span style="background:#ff3b3b; color:white; padding: 2px 8px; border-radius:4px;">2</span> Top-up Amount</h3>
+            <div style="margin: 10px 0;">
+                <button style="width:auto; padding: 5px 20px; border-radius: 20px;">Purchase</button>
+                <button style="width:auto; padding: 5px 20px; border-radius: 20px; background:#eee; color:#000;">Redeem</button>
+            </div>
+            
+            <div class="grid">
+                <div class="item" onclick="redeem(1426, 2100)">💎 1,426</div>
+                <div class="item" onclick="redeem(3565, 5240)">💎 3,565</div>
+                <div class="item" onclick="redeem(7130, 10480)">💎 7,130</div>
+                <div class="item" onclick="redeem(14260, 20960)">💎 14,260</div>
+            </div>
+        </div>
+
+        <div class="referral-banner">INVITE FRIENDS TO GET BIG REWARDS</div>
+        <div class="ref-code-display">
+            REFER. CODE<br>
+            <span id="display-ref" style="font-size: 24px;">-------</span>
+        </div>
+
+        <div style="padding: 20px;">
+            <button onclick="showTasks()" style="background:#444;">Complete Tasks to Earn</button>
+        </div>
+    </div>
+
+    <div id="task-page" class="auth-container hidden">
+        <h3>Available Tasks</h3>
+        <div id="task-list"></div>
+        <button onclick="showDashboard()" style="margin-top:10px; background:#777;">Back</button>
+    </div>
+
+    <div id="admin-page" class="auth-container hidden" style="max-width: 800px;">
+        <h2>Admin Dashboard</h2>
+        <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 20px;">
+            <h4>Create New Task</h4>
+            <input type="text" id="task-name" placeholder="Task Name">
+            <input type="number" id="task-reward" placeholder="Coin Amount">
+            <input type="text" id="task-link" placeholder="Task Link (URL)">
+            <button onclick="createTask()">Post Task</button>
+        </div>
+        <h4>Pending Approvals</h4>
+        <div id="admin-submissions"></div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const SUPABASE_URL = "YOUR_SUPABASE_URL"; 
+        const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY";
+        const supabase = org.supabase.supabaseJs.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let isRegister = false;
+        let currentUser = null;
+
+        // --- SPLASH LOGIC ---
+        window.onload = () => {
+            setTimeout(() => {
+                document.getElementById('splash').style.display = 'none';
+                checkSession();
+            }, 2500);
+        };
+
+        async function checkSession() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                loadUserData(user);
+            } else {
+                document.getElementById('auth-page').classList.remove('hidden');
+            }
+        }
+
+        // --- AUTH LOGIC ---
+        function toggleAuth() {
+            isRegister = !isRegister;
+            document.getElementById('auth-title').innerText = isRegister ? 'Register' : 'Login';
+            document.getElementById('confirm-password').classList.toggle('hidden');
+            document.getElementById('auth-btn').innerText = isRegister ? 'Sign Up' : 'Login';
+        }
+
+        async function handleAuth() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const ffUid = document.getElementById('uid').value;
+
+            if (isRegister) {
+                const { data, error } = await supabase.auth.signUp({ email, password });
+                if (error) return alert(error.message);
+                // Create Profile
+                await supabase.from('profiles').insert([
+                    { id: data.user.id, email, ff_uid: ffUid, referral_code: Math.random().toString(36).substring(7).toUpperCase() }
+                ]);
+                alert("Registration successful! Please login.");
+                location.reload();
+            } else {
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) return alert(error.message);
+                loadUserData(data.user);
+            }
+        }
+
+        // --- DATA LOADING ---
+        async function loadUserData(user) {
+            const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+            currentUser = { ...user, ...profile };
+            
+            // Redirect admin
+            if (user.email === 'sa7530006@gmail.com') {
+                showAdmin();
+                return;
+            }
+
+            document.getElementById('display-email').innerText = profile.email;
+            document.getElementById('display-uid').innerText = profile.ff_uid;
+            document.getElementById('display-balance').innerText = profile.br_coins.toFixed(1);
+            document.getElementById('display-ref').innerText = profile.referral_code;
+
+            document.getElementById('auth-page').classList.add('hidden');
+            document.getElementById('main-page').classList.remove('hidden');
+        }
+
+        // --- ADMIN FUNCTIONS ---
+        function showAdmin() {
+            document.getElementById('auth-page').classList.add('hidden');
+            document.getElementById('admin-page').classList.remove('hidden');
+            fetchSubmissions();
+        }
+
+        async function createTask() {
+            const name = document.getElementById('task-name').value;
+            const reward = document.getElementById('task-reward').value;
+            const link = document.getElementById('task-link').value;
+            await supabase.from('tasks').insert([{ title: name, reward, link }]);
+            alert("Task Created!");
+        }
+
+        async function fetchSubmissions() {
+            const { data } = await supabase.from('task_submissions').select('*, profiles(email, ff_uid), tasks(title, reward)').eq('status', 'pending');
+            let html = '';
+            data.forEach(sub => {
+                html += `<div style="border:1px solid #ccc; padding:10px; margin:5px;">
+                    User: ${sub.profiles.email} | Task: ${sub.tasks.title} (${sub.tasks.reward} coins)
+                    <button onclick="approve('${sub.id}', '${sub.user_id}', ${sub.tasks.reward})">Approve</button>
+                </div>`;
+            });
+            document.getElementById('admin-submissions').innerHTML = html;
+        }
+
+        async function approve(subId, userId, reward) {
+            // Update submission
+            await supabase.from('task_submissions').update({ status: 'approved' }).eq('id', subId);
+            // Update user balance
+            const { data: p } = await supabase.from('profiles').select('br_coins').eq('id', userId).single();
+            await supabase.from('profiles').update({ br_coins: p.br_coins + reward }).eq('id', userId);
+            alert("Approved!");
+            fetchSubmissions();
+        }
+
+        // --- USER TASK LOGIC ---
+        async function showTasks() {
+            document.getElementById('main-page').classList.add('hidden');
+            document.getElementById('task-page').classList.remove('hidden');
+            const { data } = await supabase.from('tasks').select('*');
+            let html = '';
+            data.forEach(t => {
+                html += `<div style="border-bottom:1px solid #eee; padding:10px;">
+                    <b>${t.title}</b> - Reward: ${t.reward} Coins<br>
+                    <a href="${t.link}" target="_blank" onclick="submitTask('${t.id}')">Click to Complete</a>
+                </div>`;
+            });
+            document.getElementById('task-list').innerHTML = html;
+        }
+
+        async function submitTask(taskId) {
+            await supabase.from('task_submissions').insert([{ user_id: currentUser.id, task_id: taskId }]);
+            alert("Task submitted for review!");
+        }
+
+        function showDashboard() {
+            document.getElementById('task-page').classList.add('hidden');
+            document.getElementById('main-page').classList.remove('hidden');
+        }
+
+        async function redeem(diamonds, cost) {
+            if (currentUser.br_coins < cost) {
+                alert("Insufficient BR.COINS!");
+            } else {
+                alert(`Request for ${diamonds} Diamonds sent! Admin will process it.`);
+            }
+        }
+    </script>
+</body>
+</html>
