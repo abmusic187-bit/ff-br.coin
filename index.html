@@ -3,220 +3,248 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BR.COIN Admin & User App</title>
+    <title>BR.COIN Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --app-bg: #0b0f1a;
-            --card-bg: #161b2c;
-            --accent: #00d2ff;
-            --text-main: #ffffff;
-            --text-dim: #8a99af;
-            --admin-gold: #ffcc00;
+            --bg: #05070a;
+            --card: #10141d;
+            --accent: #00f2ff;
+            --text: #ffffff;
+            --dim: #7d8590;
+            --success: #00ff88;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--app-bg); color: var(--text-main); margin: 0; padding-bottom: 70px; }
-
-        #splash {
-            position: fixed; inset: 0; background: #000;
-            display: flex; align-items: center; justify-content: center; z-index: 10000;
-        }
-
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; }
         .hidden { display: none !important; }
 
         /* Navigation */
         .nav-bar {
-            position: fixed; bottom: 0; width: 100%; background: var(--card-bg);
-            display: flex; justify-content: space-around; padding: 12px 0;
-            border-top: 1px solid #2d3748; z-index: 999;
+            position: fixed; bottom: 0; width: 100%; background: rgba(16, 20, 29, 0.95);
+            display: flex; justify-content: space-around; padding: 15px 0;
+            border-top: 1px solid #222; backdrop-filter: blur(10px); z-index: 1000;
         }
-        .nav-item { color: var(--text-dim); font-size: 12px; cursor: pointer; font-weight: bold; }
+        .nav-item { color: var(--dim); font-size: 11px; cursor: pointer; text-transform: uppercase; font-weight: 700; }
         .nav-item.active { color: var(--accent); }
 
-        /* UI Elements */
-        .card { background: var(--card-bg); border-radius: 12px; padding: 20px; margin: 15px; border: 1px solid #2d3748; }
-        input { width: 100%; padding: 14px; margin: 8px 0; background: #050810; border: 1px solid #2d3748; color: white; border-radius: 8px; }
-        button { width: 100%; padding: 14px; background: var(--accent); color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        
-        /* Admin Specific */
-        .admin-badge { background: var(--admin-gold); color: black; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; }
+        /* UI Components */
+        .card { background: var(--card); border-radius: 20px; padding: 25px; margin: 15px; border: 1px solid #1f242d; }
+        .btn { 
+            width: 100%; padding: 16px; background: var(--accent); color: #000; 
+            border: none; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.2s;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-verify { background: #222; color: var(--dim); cursor: default; }
+
+        input { 
+            width: 100%; padding: 15px; margin: 10px 0; background: #000; 
+            border: 1px solid #222; color: #fff; border-radius: 12px; outline: none;
+        }
+
+        /* Profile Special */
+        .profile-coin-card {
+            background: linear-gradient(135deg, #00f2ff 0%, #0066ff 100%);
+            padding: 40px 20px; border-radius: 24px; text-align: center; color: #000;
+            margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0, 242, 255, 0.2);
+        }
+
+        /* Admin Submission List */
+        .sub-item { background: #1a1f2b; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 4px solid var(--accent); }
     </style>
 </head>
 <body>
 
-    <div id="splash"><h2>BR.COIN</h2></div>
+    <div id="splash" style="position:fixed; inset:0; background:#000; display:flex; align-items:center; justify-content:center; z-index:10000;">
+        <h1 style="color:var(--accent); letter-spacing:8px;">BR.COIN</h1>
+    </div>
 
     <div id="view-auth" class="hidden">
-        <div class="card" style="max-width: 400px; margin: 80px auto; text-align: center;">
-            <h2 id="auth-label">Welcome</h2>
+        <div class="card" style="max-width:400px; margin: 80px auto;">
+            <h2 id="auth-label" style="text-align:center;">Login</h2>
             <input type="email" id="f-email" placeholder="Gmail">
             <input type="text" id="f-uid" placeholder="FF UID">
             <input type="password" id="f-pass" placeholder="Password">
             <input type="password" id="f-pass-confirm" class="hidden" placeholder="Confirm Password">
-            <button onclick="authAction()">Enter App</button>
-            <p onclick="toggleAuth()" style="color: var(--text-dim); cursor:pointer; margin-top:15px; font-size:13px;">Create Account / Login</p>
-        </div>
-    </div>
-
-    <div id="view-admin" class="view hidden">
-        <div class="card" style="border: 2px solid var(--admin-gold);">
-            <h3 style="color:var(--admin-gold)">ADMIN PANEL</h3>
-            <p>Create Task for Users:</p>
-            <input type="text" id="adm-t-name" placeholder="Task Name (e.g. Subscribe)">
-            <input type="number" id="adm-t-reward" placeholder="Reward (Coins)">
-            <input type="text" id="adm-t-url" placeholder="Task Link (URL)">
-            <button onclick="adminPostTask()" style="background:var(--admin-gold)">Post Task Now</button>
-        </div>
-        <div class="card">
-            <h4>User Submissions</h4>
-            <div id="admin-sub-list">No pending tasks.</div>
+            <button class="btn" onclick="authAction()">Continue</button>
+            <p onclick="toggleAuth()" style="text-align:center; color:var(--dim); margin-top:20px; cursor:pointer;">New Account / Login</p>
         </div>
     </div>
 
     <div id="view-home" class="view hidden">
-        <div class="card">
-            <div style="display:flex; justify-content: space-between;">
-                <div>
-                    <small style="color:var(--text-dim)">User Profile</small>
-                    <div id="h-email" style="font-weight:bold;">...</div>
-                </div>
-                <div style="text-align:right">
-                    <small style="color:var(--text-dim)">BR.COINS</small>
-                    <div id="h-balance" style="color:var(--accent); font-weight:bold; font-size:20px;">0.0</div>
-                </div>
-            </div>
-        </div>
-        <div style="padding:0 15px;"><h4>Top-up Diamonds</h4></div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:15px;">
-            <div class="card" style="margin:0; text-align:center;" onclick="buy(1426, 2100)">💎 1,426<br><small>2,100 C</small></div>
-            <div class="card" style="margin:0; text-align:center;" onclick="buy(3565, 5240)">💎 3,565<br><small>5,240 C</small></div>
+        <div style="padding: 20px;"><h2 style="margin:0;">Store</h2></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:15px;">
+            <div class="card" style="margin:0; text-align:center;" onclick="buy(1426, 2100)">💎 1,426<br><small style="color:var(--accent)">2,100 C</small></div>
+            <div class="card" style="margin:0; text-align:center;" onclick="buy(3565, 5240)">💎 3,565<br><small style="color:var(--accent)">5,240 C</small></div>
         </div>
     </div>
 
     <div id="view-tasks" class="view hidden">
-        <div style="padding:20px;"><h3>Earn Coins</h3></div>
-        <div id="user-task-list"></div>
+        <div style="padding:20px;"><h2>Earn Coins</h2></div>
+        <div id="task-list"></div>
     </div>
 
     <div id="view-profile" class="view hidden">
+        <div style="padding: 20px;">
+            <div class="profile-coin-card">
+                <small style="font-weight:800; opacity:0.7; text-transform:uppercase;">Current Balance</small>
+                <h1 id="p-balance" style="margin:10px 0; font-size:48px;">0.0</h1>
+                <div style="font-weight:bold;">BR.COIN</div>
+            </div>
+
+            <div class="card">
+                <div style="margin-bottom:20px;">
+                    <label style="color:var(--dim); font-size:11px; font-weight:800; display:block; margin-bottom:5px;">REGISTERED EMAIL</label>
+                    <div id="p-email" style="font-size:18px; font-weight:600;">...</div>
+                </div>
+                <div style="margin-bottom:20px;">
+                    <label style="color:var(--dim); font-size:11px; font-weight:800; display:block; margin-bottom:5px;">FREE FIRE UID</label>
+                    <div id="p-uid" style="font-size:18px; font-weight:600;">...</div>
+                </div>
+                <div style="background:#000; padding:20px; border-radius:15px; text-align:center;">
+                    <label style="color:var(--dim); font-size:11px; font-weight:800;">YOUR REFERRAL CODE</label>
+                    <div id="p-ref" style="font-size:24px; color:var(--accent); font-weight:900; letter-spacing:5px; margin-top:8px;">-------</div>
+                </div>
+                <button onclick="logout()" style="background:#ff3b3b; color:#fff; margin-top:30px; box-shadow:none;" class="btn">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-admin" class="view hidden">
         <div class="card">
-            <p><b>EMAIL:</b> <span id="p-email">...</span></p>
-            <p><b>UID:</b> <span id="p-uid">...</span></p>
-            <p><b>REF CODE:</b> <span id="p-ref" style="color:var(--accent)">...</span></p>
-            <button onclick="logout()" style="background: #333; color: white; margin-top:20px;">Logout</button>
+            <h3>Admin: Create Task</h3>
+            <input type="text" id="adm-name" placeholder="Task Title">
+            <input type="number" id="adm-reward" placeholder="Coins">
+            <input type="text" id="adm-link" placeholder="Link">
+            <button class="btn" onclick="postTask()">Post Task</button>
+        </div>
+        <div class="card">
+            <h3>Pending Verification</h3>
+            <div id="admin-pending">No requests yet.</div>
         </div>
     </div>
 
     <nav id="main-nav" class="nav-bar hidden">
-        <div class="nav-item active" onclick="switchView('home', this)">Home</div>
-        <div class="nav-item" onclick="switchView('tasks', this)">Tasks</div>
-        <div class="nav-item" onclick="switchView('profile', this)">Profile</div>
-        <div id="admin-nav-item" class="nav-item hidden" onclick="switchView('admin', this)" style="color:var(--admin-gold)">ADMIN</div>
+        <div class="nav-item active" onclick="switchV('home', this)">Home</div>
+        <div class="nav-item" onclick="switchV('tasks', this)">Tasks</div>
+        <div class="nav-item" onclick="switchV('profile', this)">Profile</div>
+        <div id="nav-admin" class="nav-item hidden" onclick="switchV('admin', this)" style="color:#ffcc00;">Admin</div>
     </nav>
 
     <script>
         const SB_URL = "https://zzehzlqhgjevwauycgdi.supabase.co"; 
         const SB_KEY = "sb_publishable_cs7l1-FeQnmB3Sl0bHfK7g_KK5qKlLh";
         const sb = supabase.createClient(SB_URL, SB_KEY);
-
-        let userProfile = null;
+        let userP = null;
         let isReg = false;
-        const ADMIN_EMAIL = "sa7530006@gmail.com";
+        const ADMIN = "sa7530006@gmail.com";
 
-        window.onload = () => {
-            setTimeout(() => {
-                document.getElementById('splash').style.display = 'none';
-                init();
-            }, 1000);
-        };
+        window.onload = () => { setTimeout(() => { document.getElementById('splash').style.display='none'; init(); }, 1000); };
 
         async function init() {
             const { data: { user } } = await sb.auth.getUser();
-            if (user) loadApp(user);
-            else document.getElementById('view-auth').classList.remove('hidden');
-        }
-
-        function toggleAuth() {
-            isReg = !isReg;
-            document.getElementById('auth-label').innerText = isReg ? "Register" : "Login";
-            document.getElementById('f-pass-confirm').classList.toggle('hidden');
-        }
-
-        async function authAction() {
-            const email = document.getElementById('f-email').value.trim();
-            const pass = document.getElementById('f-pass').value;
-            const uid = document.getElementById('f-uid').value;
-
-            if (isReg) {
-                const { data, error } = await sb.auth.signUp({ email, password: pass });
-                if (error) return alert(error.message);
-                const ref = Math.random().toString(36).substring(2, 8).toUpperCase();
-                await sb.from('profiles').insert([{ id: data.user.id, email, ff_uid: uid, referral_code: ref }]);
-                alert("Account created!");
-                location.reload();
-            } else {
-                const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
-                if (error) return alert(error.message);
-                loadApp(data.user);
-            }
+            if (user) loadApp(user); else document.getElementById('view-auth').classList.remove('hidden');
         }
 
         async function loadApp(user) {
-            // ADMIN CHECK FIRST
-            if (user.email === ADMIN_EMAIL) {
-                document.getElementById('admin-nav-item').classList.remove('hidden');
-                switchView('admin', document.getElementById('admin-nav-item'));
+            if (user.email === ADMIN) {
+                document.getElementById('nav-admin').classList.remove('hidden');
+                switchV('admin', document.getElementById('nav-admin'));
+                refreshSubmissions();
             } else {
-                switchView('home', document.querySelector('.nav-item'));
+                switchV('home', document.querySelector('.nav-item'));
             }
 
-            const { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).single();
-            userProfile = profile || { email: user.email, ff_uid: 'N/A', br_coins: 0 };
+            const { data: prof } = await sb.from('profiles').select('*').eq('id', user.id).single();
+            userP = prof;
             
-            // Sync Data
-            document.getElementById('h-email').innerText = user.email;
             document.getElementById('p-email').innerText = user.email;
-            document.getElementById('h-balance').innerText = parseFloat(userProfile.br_coins || 0).toFixed(1);
-            document.getElementById('p-uid').innerText = userProfile.ff_uid;
-            document.getElementById('p-ref').innerText = userProfile.referral_code || 'ADMIN';
+            document.getElementById('p-uid').innerText = prof.ff_uid;
+            document.getElementById('p-balance').innerText = parseFloat(prof.br_coins || 0).toFixed(1);
+            document.getElementById('p-ref').innerText = prof.referral_code;
 
             document.getElementById('view-auth').classList.add('hidden');
             document.getElementById('main-nav').classList.remove('hidden');
         }
 
-        function switchView(v, el) {
+        function switchV(v, el) {
             document.querySelectorAll('.view').forEach(x => x.classList.add('hidden'));
             document.getElementById('view-' + v).classList.remove('hidden');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             if(el) el.classList.add('active');
-            if(v === 'tasks') fetchTasks();
+            if(v === 'tasks') fetchT();
         }
 
-        async function adminPostTask() {
-            const title = document.getElementById('adm-t-name').value;
-            const reward = document.getElementById('adm-t-reward').value;
-            const link = document.getElementById('adm-t-url').value;
-            const { error } = await sb.from('tasks').insert([{ title, reward, link }]);
-            if (error) alert(error.message); else alert("Task Posted!");
-        }
-
-        async function fetchTasks() {
+        async function fetchT() {
             const { data } = await sb.from('tasks').select('*');
             let h = '';
             data.forEach(t => {
-                h += `<div class="card"><b>${t.title}</b><br><small>${t.reward} Coins</small><br>
-                      <button onclick="window.open('${t.link}'); submitT('${t.id}')" style="margin-top:10px; height:30px; padding:0;">Start Task</button></div>`;
+                h += `<div class="card" id="task-${t.id}">
+                        <b>${t.title}</b> <span style="color:var(--accent); float:right">+${t.reward}</span><br>
+                        <button id="btn-${t.id}" class="btn" style="height:40px; padding:0; margin-top:15px;" onclick="startTask('${t.id}', '${t.link}')">Start Task</button>
+                      </div>`;
             });
-            document.getElementById('user-task-list').innerHTML = h || 'No tasks.';
+            document.getElementById('task-list').innerHTML = h || 'No Tasks';
         }
 
-        async function submitT(id) {
-            await sb.from('task_submissions').insert([{ user_id: userProfile.id, task_id: id }]);
-            alert("Sent to admin for approval!");
+        function startTask(id, link) {
+            window.open(link, '_blank');
+            const btn = document.getElementById('btn-' + id);
+            btn.innerText = "Verifying...";
+            btn.classList.add('btn-verify');
+            btn.onclick = null;
+            // Send to Admin
+            sb.from('task_submissions').insert([{ user_id: userP.id, task_id: id, status: 'pending' }]).then(() => {
+                console.log("Submitted");
+            });
         }
 
+        // ADMIN FUNCTIONS
+        async function refreshSubmissions() {
+            const { data } = await sb.from('task_submissions').select('*, profiles(email, ff_uid), tasks(title, reward)').eq('status', 'pending');
+            let h = '';
+            data.forEach(s => {
+                h += `<div class="sub-item">
+                        <b>${s.profiles.email}</b><br>UID: ${s.profiles.ff_uid}<br>
+                        Task: ${s.tasks.title} (${s.tasks.reward} C)
+                        <button class="btn" style="height:30px; margin-top:10px;" onclick="approve('${s.id}', '${s.user_id}', ${s.tasks.reward})">OK / Give Coins</button>
+                      </div>`;
+            });
+            document.getElementById('admin-pending').innerHTML = h || 'Nothing to verify.';
+        }
+
+        async function approve(sid, uid, reward) {
+            await sb.from('task_submissions').update({ status: 'approved' }).eq('id', sid);
+            const { data: u } = await sb.from('profiles').select('br_coins').eq('id', uid).single();
+            await sb.from('profiles').update({ br_coins: (u.br_coins + reward) }).eq('id', uid);
+            alert("Reward Sent!");
+            refreshSubmissions();
+        }
+
+        async function postTask() {
+            const title = document.getElementById('adm-name').value;
+            const reward = document.getElementById('adm-reward').value;
+            const link = document.getElementById('adm-link').value;
+            await sb.from('tasks').insert([{ title, reward, link }]);
+            alert("Task Live!");
+        }
+
+        function toggleAuth() { isReg = !isReg; document.getElementById('auth-label').innerText = isReg ? "Register" : "Login"; document.getElementById('f-pass-confirm').classList.toggle('hidden'); }
+        async function authAction() {
+            const email = document.getElementById('f-email').value;
+            const pass = document.getElementById('f-pass').value;
+            if(isReg) {
+                const { data } = await sb.auth.signUp({ email, password: pass });
+                const ref = Math.random().toString(36).substring(2, 8).toUpperCase();
+                await sb.from('profiles').insert([{ id: data.user.id, email, ff_uid: document.getElementById('f-uid').value, referral_code: ref }]);
+                alert("Done! Now Login."); location.reload();
+            } else {
+                const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+                if(error) alert(error.message); else loadApp(data.user);
+            }
+        }
         function logout() { sb.auth.signOut(); location.reload(); }
+        function buy(d, c) { if(userP.br_coins < c) alert("No Coins!"); else alert("Request Sent!"); }
     </script>
 </body>
-                </html>
+    </html>
