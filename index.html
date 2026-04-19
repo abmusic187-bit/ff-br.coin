@@ -6,45 +6,40 @@
     <title>FF BR.COIN | Professional</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
     <style>
-        :root { --bg: #0a0c10; --card: #161b22; --accent: #00f2ff; --text: #f0f6fc; --dim: #8b949e; --success: #238636; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Inter', sans-serif; transition: all 0.2s ease; }
-        body { background: var(--bg); color: var(--text); margin: 0; padding-bottom: 100px; }
-        
+        :root { 
+            --bg: #0a0c10; --card: #161b22; --accent: #00f2ff; 
+            --text: #f0f6fc; --dim: #8b949e; --err: #da3633; 
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Inter', sans-serif; transition: 0.2s ease; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding-bottom: 100px; overflow-x: hidden; }
         .hidden { display: none !important; }
 
-        /* Professional Header */
+        /* Custom Notifications */
+        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 11000; width: 90%; max-width: 400px; pointer-events: none; }
+        .toast { 
+            background: var(--card); border: 1px solid #30363d; color: white; padding: 16px; border-radius: 12px; margin-bottom: 10px;
+            text-align: center; font-size: 14px; font-weight: 600; animation: slideIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            border-bottom: 3px solid var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Layout & Header */
         .app-header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 18px 20px; background: rgba(22, 27, 34, 0.8); backdrop-filter: blur(10px);
-            border-bottom: 1px solid #30363d; position: sticky; top: 0; z-index: 1000;
+            display: flex; justify-content: space-between; align-items: center; padding: 18px 20px;
+            background: rgba(22, 27, 34, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid #30363d;
+            position: sticky; top: 0; z-index: 1000;
         }
         .logo { font-weight: 800; color: var(--accent); font-size: 20px; letter-spacing: -0.5px; }
         .balance-chip { background: #0d1117; padding: 6px 14px; border-radius: 50px; border: 1px solid #30363d; font-size: 14px; font-weight: 600; }
 
-        /* Navigation */
-        .nav-bar {
-            position: fixed; bottom: 0; width: 100%; background: #0d1117;
-            display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d; z-index: 1000;
-        }
-        .nav-item { color: var(--dim); font-size: 11px; cursor: pointer; font-weight: 600; text-transform: uppercase; }
-        .nav-item.active { color: var(--accent); text-shadow: 0 0 10px rgba(0, 242, 255, 0.5); }
-
-        /* Professional Cards */
+        /* Cards & Buttons */
         .card { background: var(--card); border-radius: 12px; padding: 20px; margin: 15px; border: 1px solid #30363d; }
-        .diamond-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px; }
-        .diamond-box { 
-            background: #0d1117; border: 1px solid #30363d; border-radius: 12px; 
-            padding: 20px; text-align: center; cursor: pointer;
-        }
-        .diamond-box.selected { border-color: var(--accent); background: rgba(0, 242, 255, 0.05); transform: translateY(-3px); }
-
-        /* Button & Spinner */
         .btn { 
             position: relative; width: 100%; padding: 16px; background: var(--accent); color: #000; 
             border: none; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 14px;
         }
-        .btn:active { transform: scale(0.98); }
         .btn.loading { color: transparent; pointer-events: none; }
         .btn.loading::after {
             content: ""; position: absolute; width: 20px; height: 20px; top: 50%; left: 50%;
@@ -53,22 +48,28 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        input, textarea { 
-            width: 100%; padding: 12px; margin: 8px 0; background: #0d1117; 
-            border: 1px solid #30363d; color: white; border-radius: 6px; font-size: 15px;
+        /* Diamond Grid */
+        .diamond-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px; }
+        .diamond-box { background: #0d1117; border: 1px solid #30363d; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; }
+        .diamond-box.selected { border-color: var(--accent); background: rgba(0, 242, 255, 0.05); transform: translateY(-2px); }
+
+        /* Nav Bar */
+        .nav-bar {
+            position: fixed; bottom: 0; width: 100%; background: #0d1117; display: flex; 
+            justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d; z-index: 1000;
         }
+        .nav-item { color: var(--dim); font-size: 11px; cursor: pointer; font-weight: 600; text-transform: uppercase; }
+        .nav-item.active { color: var(--accent); }
 
-        /* Task Specifics */
-        .task-desc-btn { background: none; border: 1px solid #30363d; color: var(--dim); font-size: 11px; padding: 4px 8px; border-radius: 4px; cursor: pointer; margin-top: 8px; }
-        .task-desc-content { font-size: 12px; color: var(--dim); margin-top: 10px; padding: 10px; background: #0d1117; border-radius: 6px; border-left: 2px solid var(--accent); }
-
-        /* Splash */
+        /* Forms */
+        input, textarea { width: 100%; padding: 12px; margin: 8px 0; background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 6px; }
         #splash { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 10000; }
     </style>
 </head>
 <body>
 
-    <div id="splash"><h2 style="color:var(--accent); letter-spacing:10px;">BR.COIN</h2></div>
+    <div id="toast-container"></div>
+    <div id="splash"><h2 style="color:var(--accent); letter-spacing:10px; animation: pulse 1.5s infinite;">BR.COIN</h2></div>
 
     <header class="app-header hidden" id="main-header">
         <div class="logo">BR.COIN</div>
@@ -77,26 +78,24 @@
 
     <div id="view-auth" class="hidden">
         <div class="card" style="max-width:400px; margin: 60px auto;">
-            <h2 id="auth-label" style="text-align:center; margin-bottom:20px;">Welcome Back</h2>
+            <h2 id="auth-label" style="text-align:center;">Welcome Back</h2>
             <input type="email" id="f-email" placeholder="Email Address">
             <input type="text" id="f-uid" class="hidden" placeholder="Free Fire UID">
             <input type="password" id="f-pass" placeholder="Password">
             <button class="btn" id="btn-auth" onclick="authAction('btn-auth')">Login</button>
-            <p onclick="toggleAuth()" style="text-align:center; color:var(--dim); font-size:13px; margin-top:20px; cursor:pointer;">New member? Create Account</p>
+            <p onclick="toggleAuth()" style="text-align:center; color:var(--dim); font-size:13px; margin-top:20px; cursor:pointer;">Need an account? Register</p>
         </div>
     </div>
 
-    <div id="view-home" class="view hidden" style="display:flex; flex-direction:column; min-height: 80vh;">
+    <div id="view-home" class="view hidden" style="display:flex; flex-direction:column; min-height: 75vh;">
         <div class="diamond-grid">
-            <div class="diamond-box" onclick="selectPack(this, 1426, 2100)">💎 1,426<br><small>2,100 C</small></div>
-            <div class="diamond-box" onclick="selectPack(this, 3565, 5240)">💎 3,565<br><small>5,240 C</small></div>
-            <div class="diamond-box" onclick="selectPack(this, 7130, 10480)">💎 7,130<br><small>10,480 C</small></div>
-            <div class="diamond-box" onclick="selectPack(this, 14260, 20960)">💎 14,260<br><small>20,960 C</small></div>
+            <div class="diamond-box" onclick="selectPack(this, 2100)">💎 1,426<br><small>2,100 C</small></div>
+            <div class="diamond-box" onclick="selectPack(this, 5240)">💎 3,565<br><small>5,240 C</small></div>
+            <div class="diamond-box" onclick="selectPack(this, 10480)">💎 7,130<br><small>10,480 C</small></div>
+            <div class="diamond-box" onclick="selectPack(this, 20960)">💎 14,260<br><small>20,960 C</small></div>
         </div>
         <div style="flex-grow: 1;"></div> 
-        <div style="padding: 20px;">
-            <button class="btn" id="btn-redeem" onclick="processRedeem('btn-redeem')">Redeem Diamonds</button>
-        </div>
+        <div style="padding: 20px;"><button class="btn" id="btn-redeem" onclick="processRedeem('btn-redeem')">Redeem Diamonds</button></div>
     </div>
 
     <div id="view-tasks" class="view hidden">
@@ -104,30 +103,27 @@
     </div>
 
     <div id="view-profile" class="view hidden">
-        <div class="card">
-            <div style="text-align:center;">
-                <p style="color:var(--dim); font-size:12px; margin:0;">CURRENT BALANCE</p>
-                <h1 id="p-balance" style="color:var(--accent); margin:10px 0;">0.00</h1>
+        <div class="card" style="text-align:center;">
+            <p style="color:var(--dim); font-size:12px; margin-bottom:5px;">CURRENT BALANCE</p>
+            <h1 id="p-balance" style="color:var(--accent); margin:0 0 20px 0;">0.00</h1>
+            <div style="text-align:left; border-top:1px solid #333; pt:15px; font-size:13px;">
+                <p><span style="color:var(--dim)">FF UID:</span> <span id="p-uid">...</span></p>
+                <p><span style="color:var(--dim)">Email:</span> <span id="p-email">...</span></p>
             </div>
-            <div style="border-top: 1px solid #30363d; padding-top:20px;">
-                <p style="font-size:13px;"><span style="color:var(--dim)">ID:</span> <span id="p-uid">...</span></p>
-                <p style="font-size:13px;"><span style="color:var(--dim)">Email:</span> <span id="p-email">...</span></p>
-            </div>
-            <button onclick="logout()" class="btn" style="background:#ef4444; color:white; margin-top:20px;">Log Out</button>
+            <button onclick="logout()" class="btn" style="background:#ef4444; color:white; margin-top:10px;">Log Out</button>
         </div>
     </div>
 
     <div id="view-admin" class="view hidden">
         <div class="card">
-            <h3>Post New Task</h3>
+            <h3>Publish Task</h3>
             <input id="adm-name" placeholder="Task Name">
-            <input id="adm-reward" type="number" placeholder="Coin Reward">
-            <input id="adm-link" placeholder="Direct Link">
-            <textarea id="adm-desc" placeholder="Task Description (Explain what the user should do)"></textarea>
-            <button class="btn" id="btn-add-task" onclick="postTask('btn-add-task')">Publish Task</button>
+            <input id="adm-reward" type="number" placeholder="Coins">
+            <input id="adm-link" placeholder="Link">
+            <textarea id="adm-desc" placeholder="Instructions..."></textarea>
+            <button class="btn" id="btn-add-task" onclick="postTask('btn-add-task')">Add Task</button>
         </div>
-        <div id="admin-management" class="card"><h4>Active Tasks</h4><div id="task-manage-list"></div></div>
-        <div id="admin-approvals" class="card"><h4>Pending Approvals</h4><div id="proof-list"></div></div>
+        <div class="card"><h4>Approvals</h4><div id="proof-list"></div></div>
     </div>
 
     <nav id="main-nav" class="nav-bar hidden">
@@ -144,6 +140,16 @@
         let userP = null, isReg = false, selected = null;
         const adminEmail = "sa7530006@gmail.com";
 
+        // Notification Helper
+        function notify(msg) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerText = msg;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3000);
+        }
+
         window.onload = () => { setTimeout(() => { document.getElementById('splash').classList.add('hidden'); checkSession(); }, 1500); };
 
         async function checkSession() {
@@ -157,8 +163,8 @@
             userP = prof;
             document.getElementById('header-balance').innerText = prof.br_coins;
             document.getElementById('p-balance').innerText = prof.br_coins;
-            document.getElementById('p-email').innerText = user.email;
             document.getElementById('p-uid').innerText = prof.ff_uid;
+            document.getElementById('p-email').innerText = user.email;
             document.getElementById('view-auth').classList.add('hidden');
             document.getElementById('main-header').classList.remove('hidden');
             document.getElementById('main-nav').classList.remove('hidden');
@@ -167,22 +173,24 @@
         }
 
         function switchV(v, el) {
+            if(v === 'admin' && userP.email !== adminEmail) return notify("Unauthorized");
             document.querySelectorAll('.view').forEach(x => x.classList.add('hidden'));
             document.getElementById('view-' + v).classList.remove('hidden');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             if(el) el.classList.add('active');
             if(v === 'tasks') fetchT();
-            if(v === 'admin') { refreshProofs(); refreshTaskManage(); }
+            if(v === 'admin') refreshProofs();
         }
 
-        // --- BUTTON LOADING HELPER ---
-        function setBtn(id, isLoading) {
-            const btn = document.getElementById(id);
-            if(isLoading) btn.classList.add('loading');
-            else btn.classList.remove('loading');
+        // --- SECURE REWARD SYSTEM (Uses the SQL RPC) ---
+        async function claimReward(btn, taskId) {
+            btn.classList.add('loading');
+            const { error } = await sb.rpc('claim_task_reward', { t_id: taskId });
+            if (error) notify(error.message);
+            else { notify("Reward Claimed!"); loadApp(userP); }
+            btn.classList.remove('loading');
         }
 
-        // --- TASKS ---
         async function fetchT() {
             const { data: tasks } = await sb.from('tasks').select('*');
             const { data: subs } = await sb.from('task_submissions').select('*').eq('user_id', userP.id);
@@ -190,110 +198,103 @@
             tasks.forEach(t => {
                 const sub = subs.find(s => s.task_id === t.id);
                 if (sub && sub.status === 'approved') return;
-
-                let btnTxt = sub && sub.status === 'pending' ? 'Verifying...' : 'Start Task';
-                let btnCls = sub && sub.status === 'pending' ? 'btn btn-verify' : 'btn';
+                
+                let action = `<button class="btn" style="width:auto; padding:8px 15px;" onclick="startTask(this, '${t.id}','${t.link}')">Start</button>`;
+                if (sub && sub.status === 'pending') {
+                    // If you want manually approval, keep this. If you want secure claim, use claimReward()
+                    action = `<button class="btn" style="width:auto; background:#555; cursor:default;">Pending...</button>`;
+                }
 
                 h += `<div class="card">
-                        <div style="display:flex; justify-content:space-between; align-items:start;">
-                            <div><b>${t.title}</b><br><small style="color:var(--accent)">+${t.reward} Coins</small></div>
-                            <button class="${btnCls}" style="width:auto; padding:8px 16px;" onclick="startTask(this, '${t.id}','${t.link}')">${btnTxt}</button>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div><b>${t.title}</b><br><small style="color:var(--accent)">+${t.reward} C</small></div>
+                            ${action}
                         </div>
-                        <button class="task-desc-btn" onclick="this.nextElementSibling.classList.toggle('hidden')">Show Description</button>
-                        <div class="task-desc-content hidden">${t.description || 'No description provided.'}</div>
+                        <p style="font-size:11px; color:var(--dim); margin-top:10px;">${t.description || 'No instructions.'}</p>
                       </div>`;
             });
-            document.getElementById('task-list').innerHTML = h || '<p style="text-align:center; padding:50px; opacity:0.5;">No tasks available right now.</p>';
+            document.getElementById('task-list').innerHTML = h || '<p style="text-align:center; padding:50px; opacity:0.5;">No tasks found.</p>';
         }
 
         async function startTask(btn, id, link) {
             btn.classList.add('loading');
             window.open(link, '_blank');
-            await sb.from('task_submissions').insert([{ user_id: userP.id, task_id: id, status: 'pending' }]);
+            await sb.from('task_submissions').upsert([{ user_id: userP.id, task_id: id, status: 'pending' }]);
+            notify("Task started! Admin will verify.");
             setTimeout(() => fetchT(), 1000);
         }
 
-        // --- ADMIN ---
+        // --- ADMIN HELPERS ---
         async function postTask(bid) {
-            setBtn(bid, true);
-            const title = document.getElementById('adm-name').value;
-            const reward = document.getElementById('adm-reward').value;
-            const link = document.getElementById('adm-link').value;
-            const description = document.getElementById('adm-desc').value;
-            await sb.from('tasks').insert([{ title, reward, link, description }]);
-            setBtn(bid, false);
-            alert("Task Published!"); refreshTaskManage();
+            const btn = document.getElementById(bid); btn.classList.add('loading');
+            const { error } = await sb.from('tasks').insert([{ 
+                title: document.getElementById('adm-name').value, 
+                reward: document.getElementById('adm-reward').value, 
+                link: document.getElementById('adm-link').value,
+                description: document.getElementById('adm-desc').value
+            }]);
+            btn.classList.remove('loading');
+            if(!error) { notify("Task Published!"); switchV('home'); }
         }
-
-        async function refreshTaskManage() {
-            const { data } = await sb.from('tasks').select('*');
-            let h = '';
-            data.forEach(t => {
-                h += `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #333;">
-                        <span style="font-size:13px;">${t.title}</span>
-                        <button onclick="delT('${t.id}')" style="background:red; color:white; border:none; font-size:10px; border-radius:4px; padding:4px 8px;">Delete</button>
-                      </div>`;
-            });
-            document.getElementById('task-manage-list').innerHTML = h;
-        }
-
-        async function delT(id) { if(confirm("Delete this task?")) { await sb.from('tasks').delete().eq('id', id); refreshTaskManage(); } }
 
         async function refreshProofs() {
-            const { data } = await sb.from('task_submissions').select('*, profiles(email), tasks(title, reward)').eq('status', 'pending');
+            const { data } = await sb.from('task_submissions').select('*, profiles(email), tasks(id, title, reward)').eq('status', 'pending');
             let h = '';
             data.forEach(s => {
-                h += `<div class="card" style="font-size:12px;"><b>User:</b> ${s.profiles.email}<br><b>Task:</b> ${s.tasks.title}<br>
-                      <button class="btn" style="height:35px; margin-top:10px; font-size:12px; padding:0;" onclick="approve('${s.id}','${s.user_id}',${s.tasks.reward})">Approve & Pay</button></div>`;
+                h += `<div class="card" style="font-size:12px;">${s.profiles.email}<br>Task: ${s.tasks.title}
+                      <button class="btn" style="height:35px; margin-top:10px;" onclick="adminApprove(this, '${s.tasks.id}', '${s.user_id}')">Approve</button></div>`;
             });
-            document.getElementById('proof-list').innerHTML = h || 'Nothing to approve.';
+            document.getElementById('proof-list').innerHTML = h || 'No pending tasks.';
         }
 
-        async function approve(sid, uid, r) {
-            await sb.from('task_submissions').update({ status: 'approved' }).eq('id', sid);
-            const { data } = await sb.from('profiles').select('br_coins').eq('id', uid).single();
-            await sb.from('profiles').update({ br_coins: (data.br_coins + r) }).eq('id', uid);
-            refreshProofs();
+        async function adminApprove(btn, taskId, userId) {
+            btn.classList.add('loading');
+            // This manually triggers the reward logic for that specific user
+            await sb.from('task_submissions').update({ status: 'approved' }).match({ task_id: taskId, user_id: userId });
+            const { data: prof } = await sb.from('profiles').select('br_coins').eq('id', userId).single();
+            const { data: task } = await sb.from('tasks').select('reward').eq('id', taskId).single();
+            await sb.from('profiles').update({ br_coins: prof.br_coins + task.reward }).eq('id', userId);
+            notify("User Rewarded!"); refreshProofs();
         }
 
-        // --- HELPERS ---
+        // --- AUTH ---
         function toggleAuth() {
             isReg = !isReg;
-            document.getElementById('auth-label').innerText = isReg ? "Create Account" : "Welcome Back";
+            document.getElementById('auth-label').innerText = isReg ? "Register" : "Login";
             document.getElementById('f-uid').classList.toggle('hidden');
-            document.getElementById('btn-auth').innerText = isReg ? "Register" : "Login";
+            document.getElementById('btn-auth').innerText = isReg ? "Sign Up" : "Login";
         }
 
         async function authAction(bid) {
-            setBtn(bid, true);
+            const btn = document.getElementById(bid); btn.classList.add('loading');
             const email = document.getElementById('f-email').value;
             const pass = document.getElementById('f-pass').value;
             if(isReg) {
-                const { data } = await sb.auth.signUp({ email, password: pass });
-                await sb.from('profiles').insert([{ id: data.user.id, email, ff_uid: document.getElementById('f-uid').value, br_coins: 0 }]);
-                alert("Account created! Please Login."); location.reload();
+                const { data, error } = await sb.auth.signUp({ email, password: pass });
+                if(error) notify(error.message);
+                else {
+                    await sb.from('profiles').insert([{ id: data.user.id, email, ff_uid: document.getElementById('f-uid').value, br_coins: 0 }]);
+                    notify("Account created! Logging in..."); location.reload();
+                }
             } else {
                 const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
-                if(error) { alert(error.message); setBtn(bid, false); } else loadApp(data.user);
+                if(error) { notify(error.message); btn.classList.remove('loading'); } else loadApp(data.user);
             }
         }
 
-        function selectPack(el, d, c) {
+        function selectPack(el, c) {
             document.querySelectorAll('.diamond-box').forEach(b => b.classList.remove('selected'));
-            el.classList.add('selected'); selected = { cost: c };
+            el.classList.add('selected'); selected = c;
         }
 
         function processRedeem(bid) {
-            if(!selected) return alert("Select a diamond pack!");
-            if(userP.br_coins < selected.cost) return alert("Insufficient balance.");
-            setBtn(bid, true);
-            setTimeout(() => {
-                setBtn(bid, false);
-                alert("Your diamond redeem in 2 business day");
-            }, 1200);
+            if(!selected) return notify("Select a package!");
+            if(userP.br_coins < selected) return notify("Insufficient balance!");
+            const btn = document.getElementById(bid); btn.classList.add('loading');
+            setTimeout(() => { btn.classList.remove('loading'); notify("Redeem request sent!"); }, 2000);
         }
 
         function logout() { sb.auth.signOut(); location.reload(); }
     </script>
 </body>
-            </html>
+                                                                                 </html>
