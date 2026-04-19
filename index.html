@@ -9,15 +9,12 @@
     <style>
         :root { --bg: #0a0c10; --card: #161b22; --accent: #00f2ff; --text: #f0f6fc; --dim: #8b949e; --err: #da3633; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; overflow-x: hidden; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; }
         .hidden { display: none !important; }
 
-        /* Notifications */
         #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; width: 90%; max-width: 400px; }
-        .toast { background: var(--card); border: 1px solid #30363d; padding: 16px; border-radius: 12px; margin-bottom: 10px; border-bottom: 3px solid var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: slideIn 0.3s ease; }
-        @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .toast { background: var(--card); border: 1px solid #30363d; padding: 16px; border-radius: 12px; margin-bottom: 10px; border-bottom: 3px solid var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
-        /* Header & Nav */
         .app-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; background: rgba(22, 27, 34, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid #30363d; position: sticky; top: 0; z-index: 1000; }
         .logo { font-weight: 800; color: var(--accent); font-size: 20px; }
         .balance-chip { background: #0d1117; padding: 6px 14px; border-radius: 50px; border: 1px solid #30363d; font-size: 14px; font-weight: 600; }
@@ -26,15 +23,13 @@
         .nav-item { color: var(--dim); font-size: 11px; cursor: pointer; font-weight: 600; text-transform: uppercase; }
         .nav-item.active { color: var(--accent); }
 
-        /* Components */
         .card { background: var(--card); border-radius: 12px; padding: 20px; margin: 15px; border: 1px solid #30363d; }
         .btn { width: 100%; padding: 16px; background: var(--accent); color: #000; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; position: relative; }
-        .btn:disabled { opacity: 0.5; }
-        .btn.loading { color: transparent; }
+        .btn.loading { color: transparent; pointer-events: none; }
         .btn.loading::after { content: ""; position: absolute; width: 20px; height: 20px; top: 50%; left: 50%; margin: -10px; border: 3px solid rgba(0,0,0,0.2); border-top-color: #000; border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        input, textarea { width: 100%; padding: 12px; margin: 8px 0; background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 8px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 8px; }
         .diamond-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px; }
         .diamond-box { background: #0d1117; border: 1px solid #30363d; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; }
         .diamond-box.selected { border-color: var(--accent); background: rgba(0, 242, 255, 0.05); }
@@ -59,7 +54,7 @@
             <input type="text" id="f-uid" class="hidden" placeholder="Free Fire UID">
             <input type="password" id="f-pass" placeholder="Password">
             <button class="btn" id="btn-auth" onclick="authAction()">Continue</button>
-            <p onclick="toggleAuth()" style="text-align:center; color:var(--dim); font-size:13px; cursor:pointer; margin-top:15px;">Switch Login/Register</p>
+            <p onclick="toggleAuth()" style="text-align:center; color:var(--dim); font-size:13px; cursor:pointer; margin-top:15px;">Need an account? Register</p>
         </div>
     </div>
 
@@ -70,7 +65,7 @@
             <div class="diamond-box" onclick="selectPack(this, 10480)">💎 7,130<br><small>10,480 C</small></div>
             <div class="diamond-box" onclick="selectPack(this, 20960)">💎 14,260<br><small>20,960 C</small></div>
         </div>
-        <div style="padding:15px;"><button class="btn" onclick="processRedeem(this)">Redeem Now</button></div>
+        <div style="padding:15px;"><button class="btn" onclick="processRedeem(this)">Redeem Diamonds</button></div>
     </div>
 
     <div id="view-tasks" class="view hidden">
@@ -79,34 +74,34 @@
 
     <div id="view-profile" class="view hidden">
         <div class="card" style="text-align:center;">
-            <p style="color:var(--dim); font-size:12px;">ACCOUNT BALANCE</p>
-            <h1 id="p-balance" style="color:var(--accent); font-size:42px; margin:10px 0;">0</h1>
-            <div style="text-align:left; border-top:1px solid #333; padding-top:15px;">
-                <p><small style="color:var(--dim)">UID:</small> <span id="p-uid">...</span></p>
-                <p><small style="color:var(--dim)">Email:</small> <span id="p-email">...</span></p>
-            </div>
-            <button onclick="logout()" class="btn" style="background:#ef4444; color:white; margin-top:15px;">Log Out</button>
+            <h1 id="p-balance" style="color:var(--accent); font-size:42px;">0</h1>
+            <p><span id="p-uid">...</span></p>
+            <button onclick="logout()" class="btn" style="background:#ef4444; color:white;">Logout</button>
         </div>
     </div>
 
     <div id="view-admin" class="view hidden">
         <div class="card">
-            <h3>New Task</h3>
+            <h3>Add New Task</h3>
             <input id="adm-name" placeholder="Task Name">
-            <input id="adm-reward" type="number" placeholder="Coins">
-            <input id="adm-link" placeholder="URL">
-            <button class="btn" onclick="postTask(this)">Create Task</button>
+            <input id="adm-reward" type="number" placeholder="Coin Reward">
+            <input id="adm-link" placeholder="Task Link (URL)">
+            <button class="btn" onclick="postTask(this)">Publish Task</button>
         </div>
         <div class="card">
-            <h3>Pending Approvals</h3>
+            <h3>Manage Existing Tasks</h3>
+            <div id="manage-task-list"></div>
+        </div>
+        <div class="card">
+            <h3>Pending Rewards</h3>
             <div id="proof-list"></div>
         </div>
     </div>
 
     <nav id="main-nav" class="nav-bar hidden">
-        <div class="nav-item active" onclick="switchV('home', this)">Redeem</div>
+        <div class="nav-item active" onclick="switchV('home', this)">Shop</div>
         <div class="nav-item" onclick="switchV('tasks', this)">Earn</div>
-        <div class="nav-item" onclick="switchV('profile', this)">Account</div>
+        <div class="nav-item" onclick="switchV('profile', this)">User</div>
         <div id="nav-admin" class="nav-item hidden" onclick="switchV('admin', this)" style="color:#ffcc00;">Admin</div>
     </nav>
 
@@ -114,48 +109,53 @@
         const SB_URL = "https://zzehzlqhgjevwauycgdi.supabase.co"; 
         const SB_KEY = "sb_publishable_cs7l1-FeQnmB3Sl0bHfK7g_KK5qKlLh";
         const sb = supabase.createClient(SB_URL, SB_KEY);
-        
         let userP = null, isReg = false, selectedPack = null;
         const adminEmail = "sa7530006@gmail.com";
 
         function notify(m) {
-            const c = document.getElementById('toast-container');
             const t = document.createElement('div');
             t.className = 'toast'; t.innerText = m;
-            c.appendChild(t);
-            setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),400); }, 3000);
+            document.getElementById('toast-container').appendChild(t);
+            setTimeout(() => t.remove(), 3000);
         }
 
-        window.onload = () => { 
-            setTimeout(() => { 
-                document.getElementById('splash').classList.add('hidden'); 
-                checkUser();
-            }, 1500); 
-        };
+        window.onload = () => { setTimeout(() => { document.getElementById('splash').classList.add('hidden'); checkUser(); }, 1000); };
 
         async function checkUser() {
             const { data: { user } } = await sb.auth.getUser();
-            if (user) loadSession(user); 
-            else document.getElementById('view-auth').classList.remove('hidden');
+            if (user) {
+                const { data: prof } = await sb.from('profiles').select('*').eq('id', user.id).single();
+                userP = prof;
+                document.getElementById('header-balance').innerText = prof.br_coins;
+                document.getElementById('p-balance').innerText = prof.br_coins;
+                document.getElementById('p-uid').innerText = "UID: " + prof.ff_uid;
+                document.getElementById('view-auth').classList.add('hidden');
+                document.getElementById('main-header').classList.remove('hidden');
+                document.getElementById('main-nav').classList.remove('hidden');
+                if(user.email === adminEmail) document.getElementById('nav-admin').classList.remove('hidden');
+                switchV('home', document.querySelector('.nav-item'));
+            } else {
+                document.getElementById('view-auth').classList.remove('hidden');
+            }
         }
 
-        async function loadSession(user) {
-            const { data: prof } = await sb.from('profiles').select('*').eq('id', user.id).single();
-            if(!prof) return logout();
-            userP = prof;
-            userP.email = user.email;
+        function toggleAuth() {
+            isReg = !isReg;
+            document.getElementById('auth-label').innerText = isReg ? "Register" : "Login";
+            document.getElementById('f-uid').classList.toggle('hidden');
+        }
 
-            document.getElementById('header-balance').innerText = prof.br_coins;
-            document.getElementById('p-balance').innerText = prof.br_coins;
-            document.getElementById('p-uid').innerText = prof.ff_uid;
-            document.getElementById('p-email').innerText = user.email;
-
-            document.getElementById('view-auth').classList.add('hidden');
-            document.getElementById('main-header').classList.remove('hidden');
-            document.getElementById('main-nav').classList.remove('hidden');
-
-            if(user.email.toLowerCase() === adminEmail) document.getElementById('nav-admin').classList.remove('hidden');
-            switchV('home', document.querySelector('.nav-item'));
+        async function authAction() {
+            const email = document.getElementById('f-email').value;
+            const pass = document.getElementById('f-pass').value;
+            if(isReg) {
+                const { data, error } = await sb.auth.signUp({ email, password: pass });
+                if(!error) await sb.from('profiles').insert([{ id: data.user.id, email, ff_uid: document.getElementById('f-uid').value, br_coins: 0 }]);
+                location.reload();
+            } else {
+                await sb.auth.signInWithPassword({ email, password: pass });
+                location.reload();
+            }
         }
 
         function switchV(v, el) {
@@ -164,110 +164,76 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             if(el) el.classList.add('active');
             if(v === 'tasks') fetchTasks();
-            if(v === 'admin') fetchPending();
+            if(v === 'admin') { fetchPending(); fetchManageTasks(); }
         }
 
-        // Auth Logic
-        function toggleAuth() {
-            isReg = !isReg;
-            document.getElementById('auth-label').innerText = isReg ? "Create Account" : "Login";
-            document.getElementById('f-uid').classList.toggle('hidden');
-        }
-
-        async function authAction() {
-            const btn = document.getElementById('btn-auth');
-            const email = document.getElementById('f-email').value;
-            const pass = document.getElementById('f-pass').value;
-            const uid = document.getElementById('f-uid').value;
-
-            btn.classList.add('loading');
-            if(isReg) {
-                const { data, error } = await sb.auth.signUp({ email, password: pass });
-                if(error) notify(error.message);
-                else {
-                    await sb.from('profiles').insert([{ id: data.user.id, email, ff_uid: uid, br_coins: 0 }]);
-                    location.reload();
-                }
-            } else {
-                const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
-                if(error) notify(error.message); else loadSession(data.user);
-            }
-            btn.classList.remove('loading');
-        }
-
-        // Task Logic
         async function fetchTasks() {
             const { data: tasks } = await sb.from('tasks').select('*');
             const { data: subs } = await sb.from('task_submissions').select('*').eq('user_id', userP.id);
-            
             let h = '';
             tasks.forEach(t => {
-                const s = subs.find(x => x.task_id === t.id);
-                if (s && s.status === 'approved') return;
-                
-                let btnTxt = s ? 'Waiting Approval' : 'Start Task';
-                let btnDsbl = s ? 'disabled' : '';
-
-                h += `<div class="card">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div><b>${t.title}</b><br><span style="color:var(--accent)">+${t.reward} C</span></div>
-                        <button class="btn" style="width:auto; padding:8px 15px;" ${btnDsbl} onclick="startTask(this, '${t.id}', '${t.link}')">${btnTxt}</button>
-                    </div>
-                </div>`;
+                const s = subs.find(x => x.task_id === t.id && x.status === 'approved');
+                if(s) return;
+                h += `<div class="card"><b>${t.title}</b> (+${t.reward} C)<br><button class="btn" style="margin-top:10px;" onclick="startTask(this, '${t.id}', '${t.link}')">Start</button></div>`;
             });
-            document.getElementById('task-list').innerHTML = h || '<p style="text-align:center; padding:40px; opacity:0.5;">No tasks available</p>';
+            document.getElementById('task-list').innerHTML = h || 'No tasks.';
         }
 
         async function startTask(btn, id, link) {
-            btn.classList.add('loading');
             window.open(link, '_blank');
             await sb.from('task_submissions').upsert([{ user_id: userP.id, task_id: id, status: 'pending' }]);
-            setTimeout(() => { notify("Task Submitted! Admin will verify."); fetchTasks(); }, 1000);
+            notify("Pending approval!");
         }
 
-        // Admin Logic
-        async function fetchPending() {
-            const { data } = await sb.from('task_submissions').select('*, profiles(email), tasks(title, reward)').eq('status', 'pending');
+        // --- ADMIN: MANAGE TASKS ---
+        async function fetchManageTasks() {
+            const { data } = await sb.from('tasks').select('*');
             let h = '';
-            data.forEach(x => {
-                h += `<div class="card" style="font-size:13px;">
-                    User: ${x.profiles.email}<br>
-                    Task: ${x.tasks.title} (${x.tasks.reward} C)
-                    <button class="btn" style="margin-top:10px; height:40px;" onclick="approveReq(this, '${x.user_id}', '${x.task_id}')">Approve Reward</button>
+            data.forEach(t => {
+                h += `<div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>${t.title}</span>
+                    <button onclick="deleteTask(this, '${t.id}')" style="background:red; color:white; border:none; padding:5px 10px; border-radius:5px;">Delete</button>
                 </div>`;
             });
-            document.getElementById('proof-list').innerHTML = h || 'Clean! No pending tasks.';
+            document.getElementById('manage-task-list').innerHTML = h;
         }
 
-        async function approveReq(btn, uid, tid) {
-            btn.classList.add('loading');
-            // Using the RPC function for High Security
-            const { error } = await sb.rpc('reward_user_secure', { target_uid: uid, tid: tid });
-            if(error) notify(error.message);
-            else { notify("Reward Paid!"); fetchPending(); }
-            btn.classList.remove('loading');
+        async function deleteTask(btn, id) {
+            if(confirm("Delete this task?")) {
+                await sb.from('tasks').delete().eq('id', id);
+                fetchManageTasks();
+                notify("Task deleted.");
+            }
         }
 
         async function postTask(btn) {
             btn.classList.add('loading');
-            const title = document.getElementById('adm-name').value;
-            const reward = document.getElementById('adm-reward').value;
-            const link = document.getElementById('adm-link').value;
-            await sb.from('tasks').insert([{ title, reward, link }]);
-            notify("Task Live!");
+            const { error } = await sb.from('tasks').insert([{ 
+                title: document.getElementById('adm-name').value, 
+                reward: document.getElementById('adm-reward').value, 
+                link: document.getElementById('adm-link').value 
+            }]);
             btn.classList.remove('loading');
+            if(!error) { notify("Task is now live!"); fetchManageTasks(); }
+        }
+
+        async function fetchPending() {
+            const { data } = await sb.from('task_submissions').select('*, profiles(email), tasks(title, reward)').eq('status', 'pending');
+            let h = '';
+            data.forEach(x => {
+                h += `<div class="card">${x.profiles.email} - ${x.tasks.title}<br><button class="btn" onclick="approveReq(this, '${x.user_id}', '${x.task_id}')">Approve</button></div>`;
+            });
+            document.getElementById('proof-list').innerHTML = h || 'No pending.';
+        }
+
+        async function approveReq(btn, uid, tid) {
+            await sb.rpc('reward_user_secure', { target_uid: uid, tid: tid });
+            notify("Rewarded!"); fetchPending();
         }
 
         function selectPack(el, c) {
             document.querySelectorAll('.diamond-box').forEach(b => b.classList.remove('selected'));
             el.classList.add('selected'); selectedPack = c;
-        }
-
-        function processRedeem(btn) {
-            if(!selectedPack) return notify("Select a diamond pack!");
-            if(userP.br_coins < selectedPack) return notify("Insufficient coins!");
-            btn.classList.add('loading');
-            setTimeout(() => { btn.classList.remove('loading'); notify("Redeem request sent to Admin!"); }, 2000);
         }
 
         function logout() { sb.auth.signOut(); location.reload(); }
