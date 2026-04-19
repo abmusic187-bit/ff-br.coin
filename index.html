@@ -3,154 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FF BR.COIN</title>
+    <title>FF BR.COIN | Professional</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #05070a; --card: #111827; --accent: #00f2ff; --text: #ffffff; --dim: #9ca3af; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Segoe UI', sans-serif; }
-        body { background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; overflow-x: hidden; }
+        :root { --bg: #0a0c10; --card: #161b22; --accent: #00f2ff; --text: #f0f6fc; --dim: #8b949e; --success: #238636; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Inter', sans-serif; transition: all 0.2s ease; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding-bottom: 100px; }
         
-        #splash {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: #000; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; z-index: 10000;
-        }
-
         .hidden { display: none !important; }
 
+        /* Professional Header */
         .app-header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 20px; background: var(--card); border-bottom: 1px solid #1f2937;
-            position: sticky; top: 0; z-index: 1000;
+            padding: 18px 20px; background: rgba(22, 27, 34, 0.8); backdrop-filter: blur(10px);
+            border-bottom: 1px solid #30363d; position: sticky; top: 0; z-index: 1000;
         }
-        .logo { font-weight: 900; color: var(--accent); letter-spacing: 1px; font-size: 18px; }
-        .balance-chip { background: #1f2937; padding: 6px 15px; border-radius: 20px; border: 1px solid var(--accent); font-size: 14px; font-weight: bold; }
+        .logo { font-weight: 800; color: var(--accent); font-size: 20px; letter-spacing: -0.5px; }
+        .balance-chip { background: #0d1117; padding: 6px 14px; border-radius: 50px; border: 1px solid #30363d; font-size: 14px; font-weight: 600; }
 
+        /* Navigation */
         .nav-bar {
-            position: fixed; bottom: 0; width: 100%; background: #000;
-            display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #1f2937; z-index: 1000;
+            position: fixed; bottom: 0; width: 100%; background: #0d1117;
+            display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d; z-index: 1000;
         }
-        .nav-item { color: var(--dim); font-size: 12px; cursor: pointer; font-weight: bold; text-align: center; }
-        .nav-item.active { color: var(--accent); }
+        .nav-item { color: var(--dim); font-size: 11px; cursor: pointer; font-weight: 600; text-transform: uppercase; }
+        .nav-item.active { color: var(--accent); text-shadow: 0 0 10px rgba(0, 242, 255, 0.5); }
 
-        .card { background: var(--card); border-radius: 16px; padding: 20px; margin: 15px; border: 1px solid #1f2937; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .diamond-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; }
+        /* Professional Cards */
+        .card { background: var(--card); border-radius: 12px; padding: 20px; margin: 15px; border: 1px solid #30363d; }
+        .diamond-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px; }
         .diamond-box { 
-            background: var(--card); border: 2px solid #1f2937; border-radius: 16px; 
-            padding: 25px 15px; text-align: center; transition: 0.3s; cursor: pointer;
+            background: #0d1117; border: 1px solid #30363d; border-radius: 12px; 
+            padding: 20px; text-align: center; cursor: pointer;
         }
-        .diamond-box.selected { border-color: var(--accent); background: rgba(0, 242, 255, 0.1); transform: scale(1.05); }
-        
-        .btn { width: 100%; padding: 15px; background: var(--accent); color: #000; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; text-transform: uppercase; }
-        .btn-verify { background: #1f2937; color: var(--dim); border: 1px solid #374151; cursor: default; }
-        .btn-delete { background: #ef4444; color: white; padding: 5px 10px; font-size: 10px; width: auto; margin-top: 5px; }
-        
-        input { width: 100%; padding: 14px; margin: 8px 0; background: #000; border: 1px solid #374151; color: white; border-radius: 10px; font-size: 16px; }
+        .diamond-box.selected { border-color: var(--accent); background: rgba(0, 242, 255, 0.05); transform: translateY(-3px); }
 
-        .profile-data { margin-bottom: 25px; padding: 15px; background: #000; border-radius: 12px; }
-        .profile-label { color: var(--dim); font-size: 10px; text-transform: uppercase; margin-bottom: 5px; }
+        /* Button & Spinner */
+        .btn { 
+            position: relative; width: 100%; padding: 16px; background: var(--accent); color: #000; 
+            border: none; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 14px;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn.loading { color: transparent; pointer-events: none; }
+        .btn.loading::after {
+            content: ""; position: absolute; width: 20px; height: 20px; top: 50%; left: 50%;
+            margin: -10px 0 0 -10px; border: 3px solid rgba(0,0,0,0.2); border-top-color: #000;
+            border-radius: 50%; animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        input, textarea { 
+            width: 100%; padding: 12px; margin: 8px 0; background: #0d1117; 
+            border: 1px solid #30363d; color: white; border-radius: 6px; font-size: 15px;
+        }
+
+        /* Task Specifics */
+        .task-desc-btn { background: none; border: 1px solid #30363d; color: var(--dim); font-size: 11px; padding: 4px 8px; border-radius: 4px; cursor: pointer; margin-top: 8px; }
+        .task-desc-content { font-size: 12px; color: var(--dim); margin-top: 10px; padding: 10px; background: #0d1117; border-radius: 6px; border-left: 2px solid var(--accent); }
+
+        /* Splash */
+        #splash { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 10000; }
     </style>
 </head>
 <body>
 
+    <div id="splash"><h2 style="color:var(--accent); letter-spacing:10px;">BR.COIN</h2></div>
+
     <header class="app-header hidden" id="main-header">
-        <div class="logo">FF BR.COIN</div>
+        <div class="logo">BR.COIN</div>
         <div class="balance-chip"><span id="header-balance">0.0</span> <small>C</small></div>
     </header>
 
-    <div id="splash">
-        <h2 style="color:var(--accent); letter-spacing:10px;">BR.COIN</h2>
-        <p style="color:white; font-size: 12px; opacity: 0.5;">LOADING APP...</p>
-    </div>
-
     <div id="view-auth" class="hidden">
-        <div class="card" style="max-width:400px; margin: 40px auto; text-align: center;">
-            <h2 id="auth-label">Welcome</h2>
-            <input type="email" id="f-email" placeholder="Gmail">
-            <input type="text" id="f-uid" placeholder="FF UID">
+        <div class="card" style="max-width:400px; margin: 60px auto;">
+            <h2 id="auth-label" style="text-align:center; margin-bottom:20px;">Welcome Back</h2>
+            <input type="email" id="f-email" placeholder="Email Address">
+            <input type="text" id="f-uid" class="hidden" placeholder="Free Fire UID">
             <input type="password" id="f-pass" placeholder="Password">
-            <input type="password" id="f-pass-confirm" class="hidden" placeholder="Confirm Password">
-            <button class="btn" onclick="authAction()" id="btn-auth-text">Login</button>
-            <p onclick="toggleAuth()" style="color: var(--dim); margin-top: 20px; cursor:pointer;">Register / Login</p>
+            <button class="btn" id="btn-auth" onclick="authAction('btn-auth')">Login</button>
+            <p onclick="toggleAuth()" style="text-align:center; color:var(--dim); font-size:13px; margin-top:20px; cursor:pointer;">New member? Create Account</p>
         </div>
     </div>
 
-    <div id="view-home" class="view hidden">
+    <div id="view-home" class="view hidden" style="display:flex; flex-direction:column; min-height: 80vh;">
         <div class="diamond-grid">
             <div class="diamond-box" onclick="selectPack(this, 1426, 2100)">💎 1,426<br><small>2,100 C</small></div>
             <div class="diamond-box" onclick="selectPack(this, 3565, 5240)">💎 3,565<br><small>5,240 C</small></div>
             <div class="diamond-box" onclick="selectPack(this, 7130, 10480)">💎 7,130<br><small>10,480 C</small></div>
             <div class="diamond-box" onclick="selectPack(this, 14260, 20960)">💎 14,260<br><small>20,960 C</small></div>
         </div>
-        <div style="padding: 15px;"><button class="btn" onclick="processRedeem()">Buy Diamonds</button></div>
+        <div style="flex-grow: 1;"></div> 
+        <div style="padding: 20px;">
+            <button class="btn" id="btn-redeem" onclick="processRedeem('btn-redeem')">Redeem Diamonds</button>
+        </div>
     </div>
 
     <div id="view-tasks" class="view hidden">
-        <div style="padding: 10px 20px;"><h3>Earn BR.COIN</h3></div>
         <div id="task-list"></div>
     </div>
 
     <div id="view-profile" class="view hidden">
         <div class="card">
-            <div class="profile-data"><div class="profile-label">Email</div><div id="p-email">...</div></div>
-            <div class="profile-data"><div class="profile-label">UID</div><div id="p-uid">...</div></div>
-            <div class="profile-data"><div class="profile-label">Coins</div><div id="p-balance" style="color:var(--accent); font-size:20px;">0.0</div></div>
-            <button onclick="logout()" style="background:#ef4444;" class="btn">Logout</button>
+            <div style="text-align:center;">
+                <p style="color:var(--dim); font-size:12px; margin:0;">CURRENT BALANCE</p>
+                <h1 id="p-balance" style="color:var(--accent); margin:10px 0;">0.00</h1>
+            </div>
+            <div style="border-top: 1px solid #30363d; padding-top:20px;">
+                <p style="font-size:13px;"><span style="color:var(--dim)">ID:</span> <span id="p-uid">...</span></p>
+                <p style="font-size:13px;"><span style="color:var(--dim)">Email:</span> <span id="p-email">...</span></p>
+            </div>
+            <button onclick="logout()" class="btn" style="background:#ef4444; color:white; margin-top:20px;">Log Out</button>
         </div>
     </div>
 
     <div id="view-admin" class="view hidden">
         <div class="card">
-            <h3>Add New Task</h3>
-            <input type="text" id="adm-name" placeholder="Name">
-            <input type="number" id="adm-reward" placeholder="Reward">
-            <input type="text" id="adm-link" placeholder="Link">
-            <button class="btn" onclick="postTask()">Add Task</button>
+            <h3>Post New Task</h3>
+            <input id="adm-name" placeholder="Task Name">
+            <input id="adm-reward" type="number" placeholder="Coin Reward">
+            <input id="adm-link" placeholder="Direct Link">
+            <textarea id="adm-desc" placeholder="Task Description (Explain what the user should do)"></textarea>
+            <button class="btn" id="btn-add-task" onclick="postTask('btn-add-task')">Publish Task</button>
         </div>
-        <div id="admin-manage-tasks" class="card">
-            <h4>Manage Current Tasks</h4>
-            <div id="task-delete-list"></div>
-        </div>
-        <div id="admin-pending" class="card">
-            <h4>Pending Proofs</h4>
-            <div id="admin-proofs"></div>
-        </div>
+        <div id="admin-management" class="card"><h4>Active Tasks</h4><div id="task-manage-list"></div></div>
+        <div id="admin-approvals" class="card"><h4>Pending Approvals</h4><div id="proof-list"></div></div>
     </div>
 
     <nav id="main-nav" class="nav-bar hidden">
         <div class="nav-item active" onclick="switchV('home', this)">Home</div>
         <div class="nav-item" onclick="switchV('tasks', this)">Tasks</div>
         <div class="nav-item" onclick="switchV('profile', this)">Profile</div>
-        <div id="nav-admin" class="nav-item hidden" onclick="switchV('admin', this)" style="color:#ffcc00;">ADMIN</div>
+        <div id="nav-admin" class="nav-item hidden" onclick="switchV('admin', this)" style="color:#ffcc00;">Admin</div>
     </nav>
 
     <script>
         const SB_URL = "https://zzehzlqhgjevwauycgdi.supabase.co"; 
         const SB_KEY = "sb_publishable_cs7l1-FeQnmB3Sl0bHfK7g_KK5qKlLh";
         const sb = supabase.createClient(SB_URL, SB_KEY);
-        let userP = null, selected = null, isReg = false;
+        let userP = null, isReg = false, selected = null;
         const adminEmail = "sa7530006@gmail.com";
 
-        setTimeout(() => { document.getElementById('splash').style.display = 'none'; init(); }, 2000);
+        window.onload = () => { setTimeout(() => { document.getElementById('splash').classList.add('hidden'); checkSession(); }, 1500); };
 
-        async function init() {
+        async function checkSession() {
             const { data: { user } } = await sb.auth.getUser();
             if (user) loadApp(user); else document.getElementById('view-auth').classList.remove('hidden');
         }
 
         async function loadApp(user) {
             const { data: prof } = await sb.from('profiles').select('*').eq('id', user.id).single();
+            if(!prof) return logout();
             userP = prof;
-            document.getElementById('header-balance').innerText = parseFloat(prof.br_coins || 0).toFixed(1);
+            document.getElementById('header-balance').innerText = prof.br_coins;
+            document.getElementById('p-balance').innerText = prof.br_coins;
             document.getElementById('p-email').innerText = user.email;
             document.getElementById('p-uid').innerText = prof.ff_uid;
             document.getElementById('view-auth').classList.add('hidden');
             document.getElementById('main-header').classList.remove('hidden');
             document.getElementById('main-nav').classList.remove('hidden');
-            if (user.email.toLowerCase() === adminEmail) {
-                document.getElementById('nav-admin').classList.remove('hidden');
-                switchV('admin', document.getElementById('nav-admin'));
-            } else { switchV('home', document.querySelector('.nav-item')); }
+            if(user.email.toLowerCase() === adminEmail) document.getElementById('nav-admin').classList.remove('hidden');
+            switchV('home', document.querySelector('.nav-item'));
         }
 
         function switchV(v, el) {
@@ -159,113 +172,127 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             if(el) el.classList.add('active');
             if(v === 'tasks') fetchT();
-            if(v === 'admin') { refreshAdmin(); refreshTaskDeleteList(); }
+            if(v === 'admin') { refreshProofs(); refreshTaskManage(); }
         }
 
-        // --- USER TASK LOGIC ---
+        // --- BUTTON LOADING HELPER ---
+        function setBtn(id, isLoading) {
+            const btn = document.getElementById(id);
+            if(isLoading) btn.classList.add('loading');
+            else btn.classList.remove('loading');
+        }
+
+        // --- TASKS ---
         async function fetchT() {
             const { data: tasks } = await sb.from('tasks').select('*');
             const { data: subs } = await sb.from('task_submissions').select('*').eq('user_id', userP.id);
-            
-            let html = '';
+            let h = '';
             tasks.forEach(t => {
                 const sub = subs.find(s => s.task_id === t.id);
-                // If status is 'approved', DO NOT SHOW the task at all
                 if (sub && sub.status === 'approved') return;
 
-                let buttonHtml = `<button class="btn" style="width:auto; padding:8px 20px;" onclick="startTask('${t.id}', '${t.link}')">Start</button>`;
-                
-                // If status is 'pending', show 'Verifying'
-                if (sub && sub.status === 'pending') {
-                    buttonHtml = `<button class="btn btn-verify" disabled>Verifying...</button>`;
-                }
+                let btnTxt = sub && sub.status === 'pending' ? 'Verifying...' : 'Start Task';
+                let btnCls = sub && sub.status === 'pending' ? 'btn btn-verify' : 'btn';
 
-                html += `<div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+                h += `<div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:start;">
                             <div><b>${t.title}</b><br><small style="color:var(--accent)">+${t.reward} Coins</small></div>
-                            ${buttonHtml}
-                         </div>`;
-            });
-            document.getElementById('task-list').innerHTML = html || '<p style="text-align:center; opacity:0.5;">No tasks available.</p>';
-        }
-
-        async function startTask(id, link) {
-            window.open(link, '_blank');
-            await sb.from('task_submissions').insert([{ user_id: userP.id, task_id: id, status: 'pending' }]);
-            fetchT(); // Refresh UI to show "Verifying"
-        }
-
-        // --- ADMIN: DELETE & APPROVE ---
-        async function refreshTaskDeleteList() {
-            const { data } = await sb.from('tasks').select('*');
-            let h = '';
-            data.forEach(t => {
-                h += `<div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #333; padding:5px;">
-                        <span>${t.title}</span>
-                        <button class="btn btn-delete" onclick="deleteTask('${t.id}')">Delete for All</button>
+                            <button class="${btnCls}" style="width:auto; padding:8px 16px;" onclick="startTask(this, '${t.id}','${t.link}')">${btnTxt}</button>
+                        </div>
+                        <button class="task-desc-btn" onclick="this.nextElementSibling.classList.toggle('hidden')">Show Description</button>
+                        <div class="task-desc-content hidden">${t.description || 'No description provided.'}</div>
                       </div>`;
             });
-            document.getElementById('task-delete-list').innerHTML = h || 'No tasks found.';
+            document.getElementById('task-list').innerHTML = h || '<p style="text-align:center; padding:50px; opacity:0.5;">No tasks available right now.</p>';
         }
 
-        async function deleteTask(tid) {
-            if(!confirm("Delete this task for everyone?")) return;
-            await sb.from('tasks').delete().eq('id', tid);
-            refreshTaskDeleteList();
+        async function startTask(btn, id, link) {
+            btn.classList.add('loading');
+            window.open(link, '_blank');
+            await sb.from('task_submissions').insert([{ user_id: userP.id, task_id: id, status: 'pending' }]);
+            setTimeout(() => fetchT(), 1000);
         }
 
-        async function refreshAdmin() {
-            const { data } = await sb.from('task_submissions').select('*, profiles(email), tasks(title, reward)').eq('status', 'pending');
-            let h = '';
-            data.forEach(s => {
-                h += `<div class="card" style="font-size:12px;">User: ${s.profiles.email}<br>Task: ${s.tasks.title}<br>
-                      <button class="btn" style="height:35px; margin-top:10px;" onclick="approve('${s.id}', '${s.user_id}', ${s.tasks.reward})">OK / Approve</button></div>`;
-            });
-            document.getElementById('admin-proofs').innerHTML = h || 'No pending proofs.';
-        }
-
-        async function approve(sid, uid, reward) {
-            await sb.from('task_submissions').update({ status: 'approved' }).eq('id', sid);
-            const { data } = await sb.from('profiles').select('br_coins').eq('id', uid).single();
-            await sb.from('profiles').update({ br_coins: (data.br_coins + reward) }).eq('id', uid);
-            alert("Approved!"); refreshAdmin();
-        }
-
-        async function postTask() {
+        // --- ADMIN ---
+        async function postTask(bid) {
+            setBtn(bid, true);
             const title = document.getElementById('adm-name').value;
             const reward = document.getElementById('adm-reward').value;
             const link = document.getElementById('adm-link').value;
-            await sb.from('tasks').insert([{ title, reward, link }]);
-            alert("Task Added!"); refreshTaskDeleteList();
+            const description = document.getElementById('adm-desc').value;
+            await sb.from('tasks').insert([{ title, reward, link, description }]);
+            setBtn(bid, false);
+            alert("Task Published!"); refreshTaskManage();
+        }
+
+        async function refreshTaskManage() {
+            const { data } = await sb.from('tasks').select('*');
+            let h = '';
+            data.forEach(t => {
+                h += `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #333;">
+                        <span style="font-size:13px;">${t.title}</span>
+                        <button onclick="delT('${t.id}')" style="background:red; color:white; border:none; font-size:10px; border-radius:4px; padding:4px 8px;">Delete</button>
+                      </div>`;
+            });
+            document.getElementById('task-manage-list').innerHTML = h;
+        }
+
+        async function delT(id) { if(confirm("Delete this task?")) { await sb.from('tasks').delete().eq('id', id); refreshTaskManage(); } }
+
+        async function refreshProofs() {
+            const { data } = await sb.from('task_submissions').select('*, profiles(email), tasks(title, reward)').eq('status', 'pending');
+            let h = '';
+            data.forEach(s => {
+                h += `<div class="card" style="font-size:12px;"><b>User:</b> ${s.profiles.email}<br><b>Task:</b> ${s.tasks.title}<br>
+                      <button class="btn" style="height:35px; margin-top:10px; font-size:12px; padding:0;" onclick="approve('${s.id}','${s.user_id}',${s.tasks.reward})">Approve & Pay</button></div>`;
+            });
+            document.getElementById('proof-list').innerHTML = h || 'Nothing to approve.';
+        }
+
+        async function approve(sid, uid, r) {
+            await sb.from('task_submissions').update({ status: 'approved' }).eq('id', sid);
+            const { data } = await sb.from('profiles').select('br_coins').eq('id', uid).single();
+            await sb.from('profiles').update({ br_coins: (data.br_coins + r) }).eq('id', uid);
+            refreshProofs();
         }
 
         // --- HELPERS ---
-        function selectPack(el, d, cost) {
-            document.querySelectorAll('.diamond-box').forEach(b => b.classList.remove('selected'));
-            el.classList.add('selected'); selected = { diamonds: d, cost: cost };
-        }
-        function processRedeem() {
-            if(!selected) return alert("Select pack!");
-            if(userP.br_coins < selected.cost) return alert("No coins!");
-            alert("Your diamond redeem in 2 business day");
-        }
         function toggleAuth() {
             isReg = !isReg;
-            document.getElementById('auth-label').innerText = isReg ? "Register" : "Welcome";
-            document.getElementById('f-pass-confirm').classList.toggle('hidden');
+            document.getElementById('auth-label').innerText = isReg ? "Create Account" : "Welcome Back";
+            document.getElementById('f-uid').classList.toggle('hidden');
+            document.getElementById('btn-auth').innerText = isReg ? "Register" : "Login";
         }
-        async function authAction() {
+
+        async function authAction(bid) {
+            setBtn(bid, true);
             const email = document.getElementById('f-email').value;
             const pass = document.getElementById('f-pass').value;
             if(isReg) {
                 const { data } = await sb.auth.signUp({ email, password: pass });
-                const ref = Math.random().toString(36).substring(2, 8).toUpperCase();
-                await sb.from('profiles').insert([{ id: data.user.id, email, ff_uid: document.getElementById('f-uid').value, referral_code: ref }]);
-                alert("Success! Login now."); location.reload();
+                await sb.from('profiles').insert([{ id: data.user.id, email, ff_uid: document.getElementById('f-uid').value, br_coins: 0 }]);
+                alert("Account created! Please Login."); location.reload();
             } else {
                 const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
-                if(error) alert(error.message); else loadApp(data.user);
+                if(error) { alert(error.message); setBtn(bid, false); } else loadApp(data.user);
             }
         }
+
+        function selectPack(el, d, c) {
+            document.querySelectorAll('.diamond-box').forEach(b => b.classList.remove('selected'));
+            el.classList.add('selected'); selected = { cost: c };
+        }
+
+        function processRedeem(bid) {
+            if(!selected) return alert("Select a diamond pack!");
+            if(userP.br_coins < selected.cost) return alert("Insufficient balance.");
+            setBtn(bid, true);
+            setTimeout(() => {
+                setBtn(bid, false);
+                alert("Your diamond redeem in 2 business day");
+            }, 1200);
+        }
+
         function logout() { sb.auth.signOut(); location.reload(); }
     </script>
 </body>
