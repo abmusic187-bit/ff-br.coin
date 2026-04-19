@@ -3,99 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FF BR.COIN | Professional</title>
+    <title>FF BR.COIN | Secure Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    
     <style>
-        :root { 
-            --bg: #0a0c10; --card: #161b22; --accent: #00f2ff; 
-            --text: #f0f6fc; --dim: #8b949e; --err: #da3633; 
-        }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Inter', sans-serif; transition: 0.2s ease; }
-        body { background: var(--bg); color: var(--text); margin: 0; padding-bottom: 100px; overflow-x: hidden; }
+        :root { --bg: #0a0c10; --card: #161b22; --accent: #00f2ff; --text: #f0f6fc; --dim: #8b949e; --err: #da3633; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; overflow-x: hidden; }
         .hidden { display: none !important; }
 
-        /* Custom Notifications */
-        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 11000; width: 90%; max-width: 400px; pointer-events: none; }
-        .toast { 
-            background: var(--card); border: 1px solid #30363d; color: white; padding: 16px; border-radius: 12px; margin-bottom: 10px;
-            text-align: center; font-size: 14px; font-weight: 600; animation: slideIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-            border-bottom: 3px solid var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        /* Notifications */
+        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; width: 90%; max-width: 400px; }
+        .toast { background: var(--card); border: 1px solid #30363d; padding: 16px; border-radius: 12px; margin-bottom: 10px; border-bottom: 3px solid var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* Layout & Header */
-        .app-header {
-            display: flex; justify-content: space-between; align-items: center; padding: 18px 20px;
-            background: rgba(22, 27, 34, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid #30363d;
-            position: sticky; top: 0; z-index: 1000;
-        }
-        .logo { font-weight: 800; color: var(--accent); font-size: 20px; letter-spacing: -0.5px; }
+        /* Header & Nav */
+        .app-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; background: rgba(22, 27, 34, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid #30363d; position: sticky; top: 0; z-index: 1000; }
+        .logo { font-weight: 800; color: var(--accent); font-size: 20px; }
         .balance-chip { background: #0d1117; padding: 6px 14px; border-radius: 50px; border: 1px solid #30363d; font-size: 14px; font-weight: 600; }
-
-        /* Cards & Buttons */
-        .card { background: var(--card); border-radius: 12px; padding: 20px; margin: 15px; border: 1px solid #30363d; }
-        .btn { 
-            position: relative; width: 100%; padding: 16px; background: var(--accent); color: #000; 
-            border: none; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 14px;
-        }
-        .btn.loading { color: transparent; pointer-events: none; }
-        .btn.loading::after {
-            content: ""; position: absolute; width: 20px; height: 20px; top: 50%; left: 50%;
-            margin: -10px 0 0 -10px; border: 3px solid rgba(0,0,0,0.2); border-top-color: #000;
-            border-radius: 50%; animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Diamond Grid */
-        .diamond-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px; }
-        .diamond-box { background: #0d1117; border: 1px solid #30363d; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; }
-        .diamond-box.selected { border-color: var(--accent); background: rgba(0, 242, 255, 0.05); transform: translateY(-2px); }
-
-        /* Nav Bar */
-        .nav-bar {
-            position: fixed; bottom: 0; width: 100%; background: #0d1117; display: flex; 
-            justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d; z-index: 1000;
-        }
+        
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #0d1117; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d; z-index: 1000; }
         .nav-item { color: var(--dim); font-size: 11px; cursor: pointer; font-weight: 600; text-transform: uppercase; }
         .nav-item.active { color: var(--accent); }
 
-        /* Forms */
-        input, textarea { width: 100%; padding: 12px; margin: 8px 0; background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 6px; }
-        #splash { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 10000; }
+        /* Components */
+        .card { background: var(--card); border-radius: 12px; padding: 20px; margin: 15px; border: 1px solid #30363d; }
+        .btn { width: 100%; padding: 16px; background: var(--accent); color: #000; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; position: relative; }
+        .btn:disabled { opacity: 0.5; }
+        .btn.loading { color: transparent; }
+        .btn.loading::after { content: ""; position: absolute; width: 20px; height: 20px; top: 50%; left: 50%; margin: -10px; border: 3px solid rgba(0,0,0,0.2); border-top-color: #000; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        input, textarea { width: 100%; padding: 12px; margin: 8px 0; background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 8px; }
+        .diamond-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px; }
+        .diamond-box { background: #0d1117; border: 1px solid #30363d; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; }
+        .diamond-box.selected { border-color: var(--accent); background: rgba(0, 242, 255, 0.05); }
+
+        #splash { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 11000; }
     </style>
 </head>
 <body>
 
     <div id="toast-container"></div>
-    <div id="splash"><h2 style="color:var(--accent); letter-spacing:10px; animation: pulse 1.5s infinite;">BR.COIN</h2></div>
+    <div id="splash"><h2 style="color:var(--accent); letter-spacing:8px;">BR.COIN</h2></div>
 
     <header class="app-header hidden" id="main-header">
         <div class="logo">BR.COIN</div>
-        <div class="balance-chip"><span id="header-balance">0.0</span> <small>C</small></div>
+        <div class="balance-chip"><span id="header-balance">0</span> <small>C</small></div>
     </header>
 
     <div id="view-auth" class="hidden">
         <div class="card" style="max-width:400px; margin: 60px auto;">
-            <h2 id="auth-label" style="text-align:center;">Welcome Back</h2>
-            <input type="email" id="f-email" placeholder="Email Address">
+            <h2 id="auth-label" style="text-align:center;">Login</h2>
+            <input type="email" id="f-email" placeholder="Email">
             <input type="text" id="f-uid" class="hidden" placeholder="Free Fire UID">
             <input type="password" id="f-pass" placeholder="Password">
-            <button class="btn" id="btn-auth" onclick="authAction('btn-auth')">Login</button>
-            <p onclick="toggleAuth()" style="text-align:center; color:var(--dim); font-size:13px; margin-top:20px; cursor:pointer;">Need an account? Register</p>
+            <button class="btn" id="btn-auth" onclick="authAction()">Continue</button>
+            <p onclick="toggleAuth()" style="text-align:center; color:var(--dim); font-size:13px; cursor:pointer; margin-top:15px;">Switch Login/Register</p>
         </div>
     </div>
 
-    <div id="view-home" class="view hidden" style="display:flex; flex-direction:column; min-height: 75vh;">
+    <div id="view-home" class="view hidden">
         <div class="diamond-grid">
             <div class="diamond-box" onclick="selectPack(this, 2100)">💎 1,426<br><small>2,100 C</small></div>
             <div class="diamond-box" onclick="selectPack(this, 5240)">💎 3,565<br><small>5,240 C</small></div>
             <div class="diamond-box" onclick="selectPack(this, 10480)">💎 7,130<br><small>10,480 C</small></div>
             <div class="diamond-box" onclick="selectPack(this, 20960)">💎 14,260<br><small>20,960 C</small></div>
         </div>
-        <div style="flex-grow: 1;"></div> 
-        <div style="padding: 20px;"><button class="btn" id="btn-redeem" onclick="processRedeem('btn-redeem')">Redeem Diamonds</button></div>
+        <div style="padding:15px;"><button class="btn" onclick="processRedeem(this)">Redeem Now</button></div>
     </div>
 
     <div id="view-tasks" class="view hidden">
@@ -104,32 +79,34 @@
 
     <div id="view-profile" class="view hidden">
         <div class="card" style="text-align:center;">
-            <p style="color:var(--dim); font-size:12px; margin-bottom:5px;">CURRENT BALANCE</p>
-            <h1 id="p-balance" style="color:var(--accent); margin:0 0 20px 0;">0.00</h1>
-            <div style="text-align:left; border-top:1px solid #333; pt:15px; font-size:13px;">
-                <p><span style="color:var(--dim)">FF UID:</span> <span id="p-uid">...</span></p>
-                <p><span style="color:var(--dim)">Email:</span> <span id="p-email">...</span></p>
+            <p style="color:var(--dim); font-size:12px;">ACCOUNT BALANCE</p>
+            <h1 id="p-balance" style="color:var(--accent); font-size:42px; margin:10px 0;">0</h1>
+            <div style="text-align:left; border-top:1px solid #333; padding-top:15px;">
+                <p><small style="color:var(--dim)">UID:</small> <span id="p-uid">...</span></p>
+                <p><small style="color:var(--dim)">Email:</small> <span id="p-email">...</span></p>
             </div>
-            <button onclick="logout()" class="btn" style="background:#ef4444; color:white; margin-top:10px;">Log Out</button>
+            <button onclick="logout()" class="btn" style="background:#ef4444; color:white; margin-top:15px;">Log Out</button>
         </div>
     </div>
 
     <div id="view-admin" class="view hidden">
         <div class="card">
-            <h3>Publish Task</h3>
+            <h3>New Task</h3>
             <input id="adm-name" placeholder="Task Name">
             <input id="adm-reward" type="number" placeholder="Coins">
-            <input id="adm-link" placeholder="Link">
-            <textarea id="adm-desc" placeholder="Instructions..."></textarea>
-            <button class="btn" id="btn-add-task" onclick="postTask('btn-add-task')">Add Task</button>
+            <input id="adm-link" placeholder="URL">
+            <button class="btn" onclick="postTask(this)">Create Task</button>
         </div>
-        <div class="card"><h4>Approvals</h4><div id="proof-list"></div></div>
+        <div class="card">
+            <h3>Pending Approvals</h3>
+            <div id="proof-list"></div>
+        </div>
     </div>
 
     <nav id="main-nav" class="nav-bar hidden">
-        <div class="nav-item active" onclick="switchV('home', this)">Home</div>
-        <div class="nav-item" onclick="switchV('tasks', this)">Tasks</div>
-        <div class="nav-item" onclick="switchV('profile', this)">Profile</div>
+        <div class="nav-item active" onclick="switchV('home', this)">Redeem</div>
+        <div class="nav-item" onclick="switchV('tasks', this)">Earn</div>
+        <div class="nav-item" onclick="switchV('profile', this)">Account</div>
         <div id="nav-admin" class="nav-item hidden" onclick="switchV('admin', this)" style="color:#ffcc00;">Admin</div>
     </nav>
 
@@ -137,164 +114,163 @@
         const SB_URL = "https://zzehzlqhgjevwauycgdi.supabase.co"; 
         const SB_KEY = "sb_publishable_cs7l1-FeQnmB3Sl0bHfK7g_KK5qKlLh";
         const sb = supabase.createClient(SB_URL, SB_KEY);
-        let userP = null, isReg = false, selected = null;
+        
+        let userP = null, isReg = false, selectedPack = null;
         const adminEmail = "sa7530006@gmail.com";
 
-        // Notification Helper
-        function notify(msg) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.innerText = msg;
-            container.appendChild(toast);
-            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3000);
+        function notify(m) {
+            const c = document.getElementById('toast-container');
+            const t = document.createElement('div');
+            t.className = 'toast'; t.innerText = m;
+            c.appendChild(t);
+            setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),400); }, 3000);
         }
 
-        window.onload = () => { setTimeout(() => { document.getElementById('splash').classList.add('hidden'); checkSession(); }, 1500); };
+        window.onload = () => { 
+            setTimeout(() => { 
+                document.getElementById('splash').classList.add('hidden'); 
+                checkUser();
+            }, 1500); 
+        };
 
-        async function checkSession() {
+        async function checkUser() {
             const { data: { user } } = await sb.auth.getUser();
-            if (user) loadApp(user); else document.getElementById('view-auth').classList.remove('hidden');
+            if (user) loadSession(user); 
+            else document.getElementById('view-auth').classList.remove('hidden');
         }
 
-        async function loadApp(user) {
+        async function loadSession(user) {
             const { data: prof } = await sb.from('profiles').select('*').eq('id', user.id).single();
             if(!prof) return logout();
             userP = prof;
+            userP.email = user.email;
+
             document.getElementById('header-balance').innerText = prof.br_coins;
             document.getElementById('p-balance').innerText = prof.br_coins;
             document.getElementById('p-uid').innerText = prof.ff_uid;
             document.getElementById('p-email').innerText = user.email;
+
             document.getElementById('view-auth').classList.add('hidden');
             document.getElementById('main-header').classList.remove('hidden');
             document.getElementById('main-nav').classList.remove('hidden');
+
             if(user.email.toLowerCase() === adminEmail) document.getElementById('nav-admin').classList.remove('hidden');
             switchV('home', document.querySelector('.nav-item'));
         }
 
         function switchV(v, el) {
-            if(v === 'admin' && userP.email !== adminEmail) return notify("Unauthorized");
             document.querySelectorAll('.view').forEach(x => x.classList.add('hidden'));
             document.getElementById('view-' + v).classList.remove('hidden');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             if(el) el.classList.add('active');
-            if(v === 'tasks') fetchT();
-            if(v === 'admin') refreshProofs();
+            if(v === 'tasks') fetchTasks();
+            if(v === 'admin') fetchPending();
         }
 
-        // --- SECURE REWARD SYSTEM (Uses the SQL RPC) ---
-        async function claimReward(btn, taskId) {
+        // Auth Logic
+        function toggleAuth() {
+            isReg = !isReg;
+            document.getElementById('auth-label').innerText = isReg ? "Create Account" : "Login";
+            document.getElementById('f-uid').classList.toggle('hidden');
+        }
+
+        async function authAction() {
+            const btn = document.getElementById('btn-auth');
+            const email = document.getElementById('f-email').value;
+            const pass = document.getElementById('f-pass').value;
+            const uid = document.getElementById('f-uid').value;
+
             btn.classList.add('loading');
-            const { error } = await sb.rpc('claim_task_reward', { t_id: taskId });
-            if (error) notify(error.message);
-            else { notify("Reward Claimed!"); loadApp(userP); }
+            if(isReg) {
+                const { data, error } = await sb.auth.signUp({ email, password: pass });
+                if(error) notify(error.message);
+                else {
+                    await sb.from('profiles').insert([{ id: data.user.id, email, ff_uid: uid, br_coins: 0 }]);
+                    location.reload();
+                }
+            } else {
+                const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+                if(error) notify(error.message); else loadSession(data.user);
+            }
             btn.classList.remove('loading');
         }
 
-        async function fetchT() {
+        // Task Logic
+        async function fetchTasks() {
             const { data: tasks } = await sb.from('tasks').select('*');
             const { data: subs } = await sb.from('task_submissions').select('*').eq('user_id', userP.id);
+            
             let h = '';
             tasks.forEach(t => {
-                const sub = subs.find(s => s.task_id === t.id);
-                if (sub && sub.status === 'approved') return;
+                const s = subs.find(x => x.task_id === t.id);
+                if (s && s.status === 'approved') return;
                 
-                let action = `<button class="btn" style="width:auto; padding:8px 15px;" onclick="startTask(this, '${t.id}','${t.link}')">Start</button>`;
-                if (sub && sub.status === 'pending') {
-                    // If you want manually approval, keep this. If you want secure claim, use claimReward()
-                    action = `<button class="btn" style="width:auto; background:#555; cursor:default;">Pending...</button>`;
-                }
+                let btnTxt = s ? 'Waiting Approval' : 'Start Task';
+                let btnDsbl = s ? 'disabled' : '';
 
                 h += `<div class="card">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div><b>${t.title}</b><br><small style="color:var(--accent)">+${t.reward} C</small></div>
-                            ${action}
-                        </div>
-                        <p style="font-size:11px; color:var(--dim); margin-top:10px;">${t.description || 'No instructions.'}</p>
-                      </div>`;
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div><b>${t.title}</b><br><span style="color:var(--accent)">+${t.reward} C</span></div>
+                        <button class="btn" style="width:auto; padding:8px 15px;" ${btnDsbl} onclick="startTask(this, '${t.id}', '${t.link}')">${btnTxt}</button>
+                    </div>
+                </div>`;
             });
-            document.getElementById('task-list').innerHTML = h || '<p style="text-align:center; padding:50px; opacity:0.5;">No tasks found.</p>';
+            document.getElementById('task-list').innerHTML = h || '<p style="text-align:center; padding:40px; opacity:0.5;">No tasks available</p>';
         }
 
         async function startTask(btn, id, link) {
             btn.classList.add('loading');
             window.open(link, '_blank');
             await sb.from('task_submissions').upsert([{ user_id: userP.id, task_id: id, status: 'pending' }]);
-            notify("Task started! Admin will verify.");
-            setTimeout(() => fetchT(), 1000);
+            setTimeout(() => { notify("Task Submitted! Admin will verify."); fetchTasks(); }, 1000);
         }
 
-        // --- ADMIN HELPERS ---
-        async function postTask(bid) {
-            const btn = document.getElementById(bid); btn.classList.add('loading');
-            const { error } = await sb.from('tasks').insert([{ 
-                title: document.getElementById('adm-name').value, 
-                reward: document.getElementById('adm-reward').value, 
-                link: document.getElementById('adm-link').value,
-                description: document.getElementById('adm-desc').value
-            }]);
-            btn.classList.remove('loading');
-            if(!error) { notify("Task Published!"); switchV('home'); }
-        }
-
-        async function refreshProofs() {
-            const { data } = await sb.from('task_submissions').select('*, profiles(email), tasks(id, title, reward)').eq('status', 'pending');
+        // Admin Logic
+        async function fetchPending() {
+            const { data } = await sb.from('task_submissions').select('*, profiles(email), tasks(title, reward)').eq('status', 'pending');
             let h = '';
-            data.forEach(s => {
-                h += `<div class="card" style="font-size:12px;">${s.profiles.email}<br>Task: ${s.tasks.title}
-                      <button class="btn" style="height:35px; margin-top:10px;" onclick="adminApprove(this, '${s.tasks.id}', '${s.user_id}')">Approve</button></div>`;
+            data.forEach(x => {
+                h += `<div class="card" style="font-size:13px;">
+                    User: ${x.profiles.email}<br>
+                    Task: ${x.tasks.title} (${x.tasks.reward} C)
+                    <button class="btn" style="margin-top:10px; height:40px;" onclick="approveReq(this, '${x.user_id}', '${x.task_id}')">Approve Reward</button>
+                </div>`;
             });
-            document.getElementById('proof-list').innerHTML = h || 'No pending tasks.';
+            document.getElementById('proof-list').innerHTML = h || 'Clean! No pending tasks.';
         }
 
-        async function adminApprove(btn, taskId, userId) {
+        async function approveReq(btn, uid, tid) {
             btn.classList.add('loading');
-            // This manually triggers the reward logic for that specific user
-            await sb.from('task_submissions').update({ status: 'approved' }).match({ task_id: taskId, user_id: userId });
-            const { data: prof } = await sb.from('profiles').select('br_coins').eq('id', userId).single();
-            const { data: task } = await sb.from('tasks').select('reward').eq('id', taskId).single();
-            await sb.from('profiles').update({ br_coins: prof.br_coins + task.reward }).eq('id', userId);
-            notify("User Rewarded!"); refreshProofs();
+            // Using the RPC function for High Security
+            const { error } = await sb.rpc('reward_user_secure', { target_uid: uid, tid: tid });
+            if(error) notify(error.message);
+            else { notify("Reward Paid!"); fetchPending(); }
+            btn.classList.remove('loading');
         }
 
-        // --- AUTH ---
-        function toggleAuth() {
-            isReg = !isReg;
-            document.getElementById('auth-label').innerText = isReg ? "Register" : "Login";
-            document.getElementById('f-uid').classList.toggle('hidden');
-            document.getElementById('btn-auth').innerText = isReg ? "Sign Up" : "Login";
-        }
-
-        async function authAction(bid) {
-            const btn = document.getElementById(bid); btn.classList.add('loading');
-            const email = document.getElementById('f-email').value;
-            const pass = document.getElementById('f-pass').value;
-            if(isReg) {
-                const { data, error } = await sb.auth.signUp({ email, password: pass });
-                if(error) notify(error.message);
-                else {
-                    await sb.from('profiles').insert([{ id: data.user.id, email, ff_uid: document.getElementById('f-uid').value, br_coins: 0 }]);
-                    notify("Account created! Logging in..."); location.reload();
-                }
-            } else {
-                const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
-                if(error) { notify(error.message); btn.classList.remove('loading'); } else loadApp(data.user);
-            }
+        async function postTask(btn) {
+            btn.classList.add('loading');
+            const title = document.getElementById('adm-name').value;
+            const reward = document.getElementById('adm-reward').value;
+            const link = document.getElementById('adm-link').value;
+            await sb.from('tasks').insert([{ title, reward, link }]);
+            notify("Task Live!");
+            btn.classList.remove('loading');
         }
 
         function selectPack(el, c) {
             document.querySelectorAll('.diamond-box').forEach(b => b.classList.remove('selected'));
-            el.classList.add('selected'); selected = c;
+            el.classList.add('selected'); selectedPack = c;
         }
 
-        function processRedeem(bid) {
-            if(!selected) return notify("Select a package!");
-            if(userP.br_coins < selected) return notify("Insufficient balance!");
-            const btn = document.getElementById(bid); btn.classList.add('loading');
-            setTimeout(() => { btn.classList.remove('loading'); notify("Redeem request sent!"); }, 2000);
+        function processRedeem(btn) {
+            if(!selectedPack) return notify("Select a diamond pack!");
+            if(userP.br_coins < selectedPack) return notify("Insufficient coins!");
+            btn.classList.add('loading');
+            setTimeout(() => { btn.classList.remove('loading'); notify("Redeem request sent to Admin!"); }, 2000);
         }
 
         function logout() { sb.auth.signOut(); location.reload(); }
     </script>
 </body>
-                                                                                 </html>
+    </html>
