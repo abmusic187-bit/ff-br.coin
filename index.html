@@ -3,69 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FF BR.COIN | Secure Pro</title>
+    <title>BR.COIN | Professional</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #0a0c10; --card: #161b22; --accent: #00f2ff; --text: #f0f6fc; --dim: #8b949e; --err: #da3633; }
+        :root { --bg: #f8f9fa; --card: #ffffff; --blue: #0052ff; --text: #1a1a1a; --dim: #6c757d; --red: #ff4d4d; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Inter', sans-serif; }
         body { background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; }
         .hidden { display: none !important; }
 
+        /* Header Style */
+        .app-header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 15px 20px; background: white; border-top: 5px solid var(--blue);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000;
+        }
+        .logo { font-family: 'Montserrat', sans-serif; font-weight: 900; color: var(--blue); font-size: 22px; font-style: italic; }
+        .balance-chip { font-weight: 800; color: black; font-size: 16px; display: flex; align-items: center; gap: 5px; }
+
+        /* Navigation */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--blue); display: flex; justify-content: space-around; padding: 12px 0; z-index: 1000; }
+        .nav-item { color: rgba(255,255,255,0.6); font-size: 11px; cursor: pointer; font-weight: 600; text-align: center; }
+        .nav-item.active { color: white; }
+
+        /* UI Elements */
+        .card { background: var(--card); border-radius: 12px; padding: 18px; margin: 15px; border: 1px solid #e9ecef; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .btn { width: 100%; padding: 14px; background: var(--blue); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+        .btn-outline { background: transparent; border: 1px solid var(--blue); color: var(--blue); margin-top: 5px; }
+        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ced4da; border-radius: 8px; background: #fff; }
+
+        /* Withdrawal Grid */
+        .grid-3 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
+        .wd-box { border: 1px solid #dee2e6; padding: 15px; border-radius: 10px; text-align: center; cursor: pointer; font-size: 13px; }
+        .wd-box.active { border-color: var(--blue); background: rgba(0,82,255,0.05); }
+
+        /* Task Stages */
+        .stage-container { display: flex; gap: 5px; margin: 10px 0; }
+        .stage-dot { width: 12px; height: 12px; border-radius: 50%; background: #dee2e6; border: 1px solid #adb5bd; }
+        .stage-dot.active { background: var(--red); box-shadow: 0 0 8px var(--red); }
+
         #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; width: 90%; max-width: 400px; }
-        .toast { background: var(--card); border: 1px solid #30363d; padding: 16px; border-radius: 12px; margin-bottom: 10px; border-bottom: 3px solid var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-
-        .app-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; background: rgba(22, 27, 34, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid #30363d; position: sticky; top: 0; z-index: 1000; }
-        .logo { font-weight: 800; color: var(--accent); font-size: 20px; }
-        .balance-chip { background: #0d1117; padding: 6px 14px; border-radius: 50px; border: 1px solid #30363d; font-size: 14px; font-weight: 600; }
-        
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #0d1117; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d; z-index: 1000; }
-        .nav-item { color: var(--dim); font-size: 11px; cursor: pointer; font-weight: 600; text-transform: uppercase; }
-        .nav-item.active { color: var(--accent); }
-
-        .card { background: var(--card); border-radius: 12px; padding: 20px; margin: 15px; border: 1px solid #30363d; }
-        .btn { width: 100%; padding: 16px; background: var(--accent); color: #000; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; position: relative; }
-        .btn.loading { color: transparent; pointer-events: none; }
-        .btn.loading::after { content: ""; position: absolute; width: 20px; height: 20px; top: 50%; left: 50%; margin: -10px; border: 3px solid rgba(0,0,0,0.2); border-top-color: #000; border-radius: 50%; animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        input { width: 100%; padding: 12px; margin: 8px 0; background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 8px; }
-        .diamond-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px; }
-        .diamond-box { background: #0d1117; border: 1px solid #30363d; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; }
-        .diamond-box.selected { border-color: var(--accent); background: rgba(0, 242, 255, 0.05); }
-
-        #splash { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 11000; }
+        .toast { background: #333; color: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; text-align: center; font-size: 14px; }
     </style>
 </head>
 <body>
 
     <div id="toast-container"></div>
-    <div id="splash"><h2 style="color:var(--accent); letter-spacing:8px;">BR.COIN</h2></div>
 
     <header class="app-header hidden" id="main-header">
         <div class="logo">BR.COIN</div>
-        <div class="balance-chip"><span id="header-balance">0</span> <small>C</small></div>
+        <div class="balance-chip"><span id="header-balance">0.00</span> 🪙</div>
     </header>
 
     <div id="view-auth" class="hidden">
-        <div class="card" style="max-width:400px; margin: 60px auto;">
-            <h2 id="auth-label" style="text-align:center;">Login</h2>
+        <div class="card" style="margin-top: 50px;">
+            <h2 id="auth-label">Login</h2>
+            <input type="text" id="f-name" class="hidden" placeholder="Full Name">
             <input type="email" id="f-email" placeholder="Email">
-            <input type="text" id="f-uid" class="hidden" placeholder="Free Fire UID">
             <input type="password" id="f-pass" placeholder="Password">
-            <button class="btn" id="btn-auth" onclick="authAction()">Continue</button>
-            <p onclick="toggleAuth()" style="text-align:center; color:var(--dim); font-size:13px; cursor:pointer; margin-top:15px;">Need an account? Register</p>
+            <button class="btn" onclick="authAction()">Continue</button>
+            <p onclick="toggleAuth()" style="text-align:center; color:var(--blue); font-size:13px; margin-top:15px;">Toggle Login/Register</p>
         </div>
     </div>
 
     <div id="view-home" class="view hidden">
-        <div class="diamond-grid">
-            <div class="diamond-box" onclick="selectPack(this, 2100)">💎 1,426<br><small>2,100 C</small></div>
-            <div class="diamond-box" onclick="selectPack(this, 5240)">💎 3,565<br><small>5,240 C</small></div>
-            <div class="diamond-box" onclick="selectPack(this, 10480)">💎 7,130<br><small>10,480 C</small></div>
-            <div class="diamond-box" onclick="selectPack(this, 20960)">💎 14,260<br><small>20,960 C</small></div>
+        <div class="card">
+            <h3>Withdraw Funds</h3>
+            <p style="font-size: 12px; color: var(--dim);">42 Coins = 30 PKR</p>
+            
+            <label>Method:</label>
+            <select id="wd-method" onchange="updateWdOptions()">
+                <option value="ff">Free Fire Diamonds</option>
+                <option value="usdt">USDT (TRC20)</option>
+                <option value="ep">Easypaisa</option>
+                <option value="jc">JazzCash</option>
+            </select>
+
+            <div id="wd-options" class="grid-3"></div>
+            <button class="btn" style="margin-top:20px;" onclick="submitWithdraw()">Withdraw Now</button>
         </div>
-        <div style="padding:15px;"><button class="btn" onclick="processRedeem(this)">Redeem Diamonds</button></div>
     </div>
 
     <div id="view-tasks" class="view hidden">
@@ -74,83 +90,240 @@
 
     <div id="view-profile" class="view hidden">
         <div class="card" style="text-align:center;">
-            <h1 id="p-balance" style="color:var(--accent); font-size:42px;">0</h1>
-            <p><span id="p-uid">...</span></p>
-            <button onclick="logout()" class="btn" style="background:#ef4444; color:white;">Logout</button>
+            <p>Welcome, <b id="p-name">User</b></p>
+            <h1 id="p-balance" style="color:var(--blue); font-size:36px;">0.00</h1>
         </div>
+        <div class="card">
+            <h4>Payment Details</h4>
+            <input id="up-ff" placeholder="Free Fire UID">
+            <input id="up-ep-n" placeholder="Easypaisa Name">
+            <input id="up-ep-v" placeholder="Easypaisa Number">
+            <input id="up-jc-n" placeholder="JazzCash Name">
+            <input id="up-jc-v" placeholder="JazzCash Number">
+            <input id="up-usdt" placeholder="USDT TRC20 Address">
+            <button class="btn btn-outline" onclick="updateProfile()">Save Details</button>
+        </div>
+        <div style="padding:15px;"><button onclick="logout()" class="btn" style="background:#f44;">Logout</button></div>
     </div>
 
     <div id="view-admin" class="view hidden">
         <div class="card">
-            <h3>Add New Task</h3>
-            <input id="adm-name" placeholder="Task Name">
-            <input id="adm-reward" type="number" placeholder="Coin Reward">
-            <input id="adm-link" placeholder="Task Link (URL)">
-            <button class="btn" onclick="postTask(this)">Publish Task</button>
+            <h4>Create Task</h4>
+            <input id="adm-t" placeholder="Task Name">
+            <input id="adm-p" type="number" placeholder="Total Price">
+            <input id="adm-l" placeholder="Link">
+            <input id="adm-s" type="number" placeholder="Number of Stages">
+            <textarea id="adm-d" placeholder="Description"></textarea>
+            <button class="btn" onclick="createTask()">Create Task</button>
         </div>
         <div class="card">
-            <h3>Manage Existing Tasks</h3>
-            <div id="manage-task-list"></div>
+            <h4>Manage Tasks</h4>
+            <div id="adm-manage"></div>
         </div>
         <div class="card">
-            <h3>Pending Rewards</h3>
-            <div id="proof-list"></div>
+            <h4>Approve Stages</h4>
+            <div id="adm-subs"></div>
         </div>
     </div>
 
     <nav id="main-nav" class="nav-bar hidden">
-        <div class="nav-item active" onclick="switchV('home', this)">Shop</div>
-        <div class="nav-item" onclick="switchV('tasks', this)">Earn</div>
-        <div class="nav-item" onclick="switchV('profile', this)">User</div>
-        <div id="nav-admin" class="nav-item hidden" onclick="switchV('admin', this)" style="color:#ffcc00;">Admin</div>
+        <div class="nav-item active" onclick="switchV('home', this)">Withdraw</div>
+        <div class="nav-item" onclick="switchV('tasks', this)">Tasks</div>
+        <div class="nav-item" onclick="switchV('profile', this)">Profile</div>
+        <div id="nav-admin" class="nav-item hidden" onclick="switchV('admin', this)">Admin</div>
     </nav>
 
     <script>
         const SB_URL = "https://zzehzlqhgjevwauycgdi.supabase.co"; 
         const SB_KEY = "sb_publishable_cs7l1-FeQnmB3Sl0bHfK7g_KK5qKlLh";
         const sb = supabase.createClient(SB_URL, SB_KEY);
-        let userP = null, isReg = false, selectedPack = null;
-        const adminEmail = "sa7530006@gmail.com";
+        let userP = null, isReg = false, selectedAmount = 0;
 
         function notify(m) {
-            const t = document.createElement('div');
-            t.className = 'toast'; t.innerText = m;
+            const t = document.createElement('div'); t.className = 'toast'; t.innerText = m;
             document.getElementById('toast-container').appendChild(t);
             setTimeout(() => t.remove(), 3000);
         }
 
-        window.onload = () => { setTimeout(() => { document.getElementById('splash').classList.add('hidden'); checkUser(); }, 1000); };
-
-        async function checkUser() {
+        window.onload = async () => { 
             const { data: { user } } = await sb.auth.getUser();
-            if (user) {
-                const { data: prof } = await sb.from('profiles').select('*').eq('id', user.id).single();
-                userP = prof;
-                document.getElementById('header-balance').innerText = prof.br_coins;
-                document.getElementById('p-balance').innerText = prof.br_coins;
-                document.getElementById('p-uid').innerText = "UID: " + prof.ff_uid;
-                document.getElementById('view-auth').classList.add('hidden');
-                document.getElementById('main-header').classList.remove('hidden');
-                document.getElementById('main-nav').classList.remove('hidden');
-                if(user.email === adminEmail) document.getElementById('nav-admin').classList.remove('hidden');
-                switchV('home', document.querySelector('.nav-item'));
+            if (user) loadApp(user); 
+            else document.getElementById('view-auth').classList.remove('hidden');
+        };
+
+        async function loadApp(user) {
+            const { data: prof } = await sb.from('profiles').select('*').eq('id', user.id).single();
+            userP = prof;
+            document.getElementById('header-balance').innerText = prof.br_coins.toFixed(2);
+            document.getElementById('p-balance').innerText = prof.br_coins.toFixed(2);
+            document.getElementById('p-name').innerText = prof.full_name || 'Member';
+            
+            // Fill profile inputs
+            document.getElementById('up-ff').value = prof.ff_uid || '';
+            document.getElementById('up-ep-n').value = prof.ep_name || '';
+            document.getElementById('up-ep-v').value = prof.ep_no || '';
+            document.getElementById('up-jc-n').value = prof.jc_name || '';
+            document.getElementById('up-jc-v').value = prof.jc_no || '';
+            document.getElementById('up-usdt').value = prof.usdt_addr || '';
+
+            document.getElementById('view-auth').classList.add('hidden');
+            document.getElementById('main-header').classList.remove('hidden');
+            document.getElementById('main-nav').classList.remove('hidden');
+            if(user.email === "sa7530006@gmail.com") document.getElementById('nav-admin').classList.remove('hidden');
+            switchV('home', document.querySelector('.nav-item'));
+        }
+
+        function switchV(v, el) {
+            document.querySelectorAll('.view').forEach(x => x.classList.add('hidden'));
+            document.getElementById('view-' + v).classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            el.classList.add('active');
+            if(v === 'home') updateWdOptions();
+            if(v === 'tasks') fetchTasks();
+            if(v === 'admin') { fetchAdminTasks(); fetchSubs(); }
+        }
+
+        // Withdrawal Logic
+        function updateWdOptions() {
+            const m = document.getElementById('wd-method').value;
+            const container = document.getElementById('wd-options');
+            let html = '';
+            let opts = [];
+
+            if(m === 'ep' || m === 'jc') {
+                opts = [{p:30, c:42}, {p:100, c:140}, {p:200, c:280}, {p:1000, c:1400}];
+                opts.forEach(o => html += `<div class="wd-box" onclick="setWd(${o.c}, this)">${o.p} PKR<br><small>${o.c} Coins</small></div>`);
+            } else if(m === 'usdt') {
+                opts = [{u:0.2, c:84}, {u:1, c:420}, {u:5, c:2100}, {u:10, c:4200}];
+                opts.forEach(o => html += `<div class="wd-box" onclick="setWd(${o.c}, this)">$${o.u} USDT<br><small>${o.c} Coins</small></div>`);
             } else {
-                document.getElementById('view-auth').classList.remove('hidden');
+                html = '<p style="grid-column: span 2; font-size:12px;">FF Diamonds calculated at checkout.</p>';
             }
+            container.innerHTML = html;
         }
 
-        function toggleAuth() {
-            isReg = !isReg;
-            document.getElementById('auth-label').innerText = isReg ? "Register" : "Login";
-            document.getElementById('f-uid').classList.toggle('hidden');
+        function setWd(c, el) {
+            selectedAmount = c;
+            document.querySelectorAll('.wd-box').forEach(x => x.classList.remove('active'));
+            el.classList.add('active');
         }
 
+        async function submitWithdraw() {
+            const m = document.getElementById('wd-method').value;
+            if(!selectedAmount && m !== 'ff') return notify("Select amount!");
+            if(userP.br_coins < selectedAmount) return notify("Insufficient Balance!");
+
+            // Detail Verification
+            let valid = true;
+            if(m === 'ep' && (!userP.ep_no || !userP.ep_name)) valid = false;
+            if(m === 'jc' && (!userP.jc_no || !userP.jc_name)) valid = false;
+            if(m === 'usdt' && !userP.usdt_addr) valid = false;
+            if(m === 'ff' && !userP.ff_uid) valid = false;
+
+            if(!valid) return notify("Please update payment details in Profile first!");
+
+            await sb.from('profiles').update({ br_coins: userP.br_coins - selectedAmount }).eq('id', userP.id);
+            notify("Your withdrawal received in 2 business days");
+            setTimeout(() => location.reload(), 2000);
+        }
+
+        // Task Logic
+        async function fetchTasks() {
+            const { data: tasks } = await sb.from('tasks').select('*');
+            const { data: subs } = await sb.from('task_submissions').select('*').eq('user_id', userP.id);
+            let html = '';
+            tasks.forEach(t => {
+                const sub = subs.find(s => s.task_id === t.id) || { current_stage: 0 };
+                let dots = '';
+                for(let i=1; i<=t.stages; i++) dots += `<div class="stage-dot ${i <= sub.current_stage ? 'active' : ''}"></div>`;
+                
+                html += `<div class="card">
+                    <b>${t.title}</b> <small style="float:right">${t.reward} C Total</small>
+                    <div class="stage-container">${dots}</div>
+                    <p style="font-size:12px; color:var(--dim)">${t.description}</p>
+                    <button class="btn btn-outline" onclick="startStage('${t.id}', '${t.link}')">
+                        ${sub.current_stage >= t.stages ? 'Completed' : 'Go to Stage ' + (sub.current_stage + 1)}
+                    </button>
+                </div>`;
+            });
+            document.getElementById('task-list').innerHTML = html;
+        }
+
+        async function startStage(tid, link) {
+            window.open(link, '_blank');
+            await sb.from('task_submissions').upsert([{ user_id: userP.id, task_id: tid, status: 'pending' }], { onConflict: 'user_id, task_id' });
+            notify("Stage started! Admin will verify.");
+        }
+
+        // Profile Update
+        async function updateProfile() {
+            const upd = {
+                ff_uid: document.getElementById('up-ff').value,
+                ep_name: document.getElementById('up-ep-n').value,
+                ep_no: document.getElementById('up-ep-v').value,
+                jc_name: document.getElementById('up-jc-n').value,
+                jc_no: document.getElementById('up-jc-v').value,
+                usdt_addr: document.getElementById('up-usdt').value
+            };
+            await sb.from('profiles').update(upd).eq('id', userP.id);
+            notify("Details Updated!");
+        }
+
+        // Admin Helpers
+        async function createTask() {
+            const t = { 
+                title: document.getElementById('adm-t').value,
+                reward: document.getElementById('adm-p').value,
+                link: document.getElementById('adm-l').value,
+                stages: document.getElementById('adm-s').value,
+                description: document.getElementById('adm-d').value
+            };
+            await sb.from('tasks').insert([t]);
+            notify("Task Created!");
+            fetchAdminTasks();
+        }
+
+        async function fetchAdminTasks() {
+            const { data } = await sb.from('tasks').select('*');
+            let h = '';
+            data.forEach(t => h += `<div style="display:flex; justify-content:space-between; margin-top:5px;"><span>${t.title}</span> <button onclick="delTask('${t.id}')">Delete</button></div>`);
+            document.getElementById('adm-manage').innerHTML = h;
+        }
+
+        async function delTask(id) { await sb.from('tasks').delete().eq('id', id); fetchAdminTasks(); }
+
+        async function fetchSubs() {
+            const { data } = await sb.from('task_submissions').select('*, profiles(email), tasks(title, reward, stages)').eq('status', 'pending');
+            let h = '';
+            data.forEach(s => {
+                h += `<div class="card">
+                    User: ${s.profiles.email} <br> Task: ${s.tasks.title} <br>
+                    Current Stage: ${s.current_stage} / ${s.tasks.stages}
+                    <button class="btn" onclick="approveStage('${s.user_id}', '${s.task_id}', ${s.current_stage}, ${s.tasks.reward / s.tasks.stages})">Approve Next Stage</button>
+                </div>`;
+            });
+            document.getElementById('adm-subs').innerHTML = h || 'No pending approvals.';
+        }
+
+        async function approveStage(uid, tid, curr, rewardPerStage) {
+            // Update profile balance
+            const { data: p } = await sb.from('profiles').select('br_coins').eq('id', uid).single();
+            await sb.from('profiles').update({ br_coins: p.br_coins + rewardPerStage }).eq('id', uid);
+            // Update submission stage
+            await sb.from('task_submissions').update({ current_stage: curr + 1, status: 'pending' }).match({ user_id: uid, task_id: tid });
+            notify("Stage Approved!");
+            fetchSubs();
+        }
+
+        // Auth Helpers
+        function toggleAuth() { isReg = !isReg; document.getElementById('f-name').classList.toggle('hidden'); }
         async function authAction() {
             const email = document.getElementById('f-email').value;
             const pass = document.getElementById('f-pass').value;
+            const name = document.getElementById('f-name').value;
             if(isReg) {
-                const { data, error } = await sb.auth.signUp({ email, password: pass });
-                if(!error) await sb.from('profiles').insert([{ id: data.user.id, email, ff_uid: document.getElementById('f-uid').value, br_coins: 0 }]);
+                const { data } = await sb.auth.signUp({ email, password: pass });
+                if(data.user) await sb.from('profiles').insert([{ id: data.user.id, full_name: name, br_coins: 0 }]);
                 location.reload();
             } else {
                 await sb.auth.signInWithPassword({ email, password: pass });
@@ -158,85 +331,7 @@
             }
         }
 
-        function switchV(v, el) {
-            document.querySelectorAll('.view').forEach(x => x.classList.add('hidden'));
-            document.getElementById('view-' + v).classList.remove('hidden');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            if(el) el.classList.add('active');
-            if(v === 'tasks') fetchTasks();
-            if(v === 'admin') { fetchPending(); fetchManageTasks(); }
-        }
-
-        async function fetchTasks() {
-            const { data: tasks } = await sb.from('tasks').select('*');
-            const { data: subs } = await sb.from('task_submissions').select('*').eq('user_id', userP.id);
-            let h = '';
-            tasks.forEach(t => {
-                const s = subs.find(x => x.task_id === t.id && x.status === 'approved');
-                if(s) return;
-                h += `<div class="card"><b>${t.title}</b> (+${t.reward} C)<br><button class="btn" style="margin-top:10px;" onclick="startTask(this, '${t.id}', '${t.link}')">Start</button></div>`;
-            });
-            document.getElementById('task-list').innerHTML = h || 'No tasks.';
-        }
-
-        async function startTask(btn, id, link) {
-            window.open(link, '_blank');
-            await sb.from('task_submissions').upsert([{ user_id: userP.id, task_id: id, status: 'pending' }]);
-            notify("Pending approval!");
-        }
-
-        // --- ADMIN: MANAGE TASKS ---
-        async function fetchManageTasks() {
-            const { data } = await sb.from('tasks').select('*');
-            let h = '';
-            data.forEach(t => {
-                h += `<div class="card" style="display:flex; justify-content:space-between; align-items:center;">
-                    <span>${t.title}</span>
-                    <button onclick="deleteTask(this, '${t.id}')" style="background:red; color:white; border:none; padding:5px 10px; border-radius:5px;">Delete</button>
-                </div>`;
-            });
-            document.getElementById('manage-task-list').innerHTML = h;
-        }
-
-        async function deleteTask(btn, id) {
-            if(confirm("Delete this task?")) {
-                await sb.from('tasks').delete().eq('id', id);
-                fetchManageTasks();
-                notify("Task deleted.");
-            }
-        }
-
-        async function postTask(btn) {
-            btn.classList.add('loading');
-            const { error } = await sb.from('tasks').insert([{ 
-                title: document.getElementById('adm-name').value, 
-                reward: document.getElementById('adm-reward').value, 
-                link: document.getElementById('adm-link').value 
-            }]);
-            btn.classList.remove('loading');
-            if(!error) { notify("Task is now live!"); fetchManageTasks(); }
-        }
-
-        async function fetchPending() {
-            const { data } = await sb.from('task_submissions').select('*, profiles(email), tasks(title, reward)').eq('status', 'pending');
-            let h = '';
-            data.forEach(x => {
-                h += `<div class="card">${x.profiles.email} - ${x.tasks.title}<br><button class="btn" onclick="approveReq(this, '${x.user_id}', '${x.task_id}')">Approve</button></div>`;
-            });
-            document.getElementById('proof-list').innerHTML = h || 'No pending.';
-        }
-
-        async function approveReq(btn, uid, tid) {
-            await sb.rpc('reward_user_secure', { target_uid: uid, tid: tid });
-            notify("Rewarded!"); fetchPending();
-        }
-
-        function selectPack(el, c) {
-            document.querySelectorAll('.diamond-box').forEach(b => b.classList.remove('selected'));
-            el.classList.add('selected'); selectedPack = c;
-        }
-
         function logout() { sb.auth.signOut(); location.reload(); }
     </script>
 </body>
-    </html>
+                                                               </html>
