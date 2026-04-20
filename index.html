@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BR.COIN</title>
+    <title>BR.COIN | Rewards</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <style>
@@ -12,7 +12,7 @@
         body { background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; }
         .hidden { display: none !important; }
 
-        /* Request: Blue Upper Border & Header */
+        /* Header: Blue Top Border */
         .app-header { 
             display: flex; justify-content: space-between; align-items: center; 
             padding: 15px 20px; background: white; border-top: 6px solid var(--blue);
@@ -21,24 +21,24 @@
         .logo { font-family: 'Montserrat', sans-serif; font-weight: 900; color: var(--blue); font-size: 20px; }
         .balance-chip { font-weight: 800; color: black; font-size: 15px; }
 
-        /* Request: Blue Bottom Navigation */
+        /* Bottom Nav: Blue */
         .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--blue); display: flex; justify-content: space-around; padding: 15px 0; z-index: 1000; }
         .nav-item { color: rgba(255,255,255,0.6); font-size: 11px; cursor: pointer; font-weight: 700; text-transform: uppercase; }
-        .nav-item.active { color: white; }
+        .nav-item.active { color: white; border-bottom: 2px solid white; }
 
-        .card { background: white; border-radius: 12px; padding: 20px; margin: 15px; border: 1px solid #eee; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .card { background: white; border-radius: 12px; padding: 20px; margin: 15px; border: 1px solid #eee; }
         .btn { width: 100%; padding: 16px; background: var(--blue); color: white; border: none; border-radius: 10px; font-weight: 800; cursor: pointer; }
-        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .btn:disabled { background: #ccc; }
         
         input, select, textarea { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; }
         
-        /* Task Indicators */
+        /* Task Stage Indicators */
         .stage-box { display: flex; gap: 8px; margin: 10px 0; }
-        .light { width: 12px; height: 12px; border-radius: 50%; background: #e0e0e0; border: 1px solid #ccc; }
-        .light.active { background: var(--red); box-shadow: 0 0 8px var(--red); border-color: #b00; }
+        .light { width: 14px; height: 14px; border-radius: 50%; background: #e0e0e0; border: 1px solid #ccc; }
+        .light.active { background: var(--red); box-shadow: 0 0 8px var(--red); }
 
         #splash { position: fixed; inset: 0; background: white; display: flex; align-items: center; justify-content: center; z-index: 9999; }
-        #toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 10001; background: #333; color: white; padding: 12px 20px; border-radius: 8px; font-size: 13px; display: none; }
+        #toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 10001; background: #333; color: white; padding: 12px 20px; border-radius: 8px; display: none; }
     </style>
 </head>
 <body>
@@ -53,29 +53,30 @@
 
     <div id="view-auth" class="hidden" style="text-align:center; padding-top:100px;">
         <h1 class="logo" style="font-size:40px">BR.COIN</h1>
-        <p style="color:#666">Earn & Withdraw Rewards</p>
         <div style="padding:40px">
             <button class="btn" onclick="loginWithGoogle()" style="background:white; color:#444; border:1px solid #ddd; display:flex; align-items:center; justify-content:center; gap:10px;">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20"> Login with Google
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20"> Sign in with Google
             </button>
         </div>
     </div>
 
     <div id="view-home" class="view hidden">
         <div class="card">
-            <h3>Withdraw</h3>
+            <h3>Withdraw PKR</h3>
+            <p style="font-size:12px; color:gray">42 Coins = 30 PKR</p>
             <select id="wd-method" onchange="renderWd()">
-                <option value="ep">Easypaisa (42c = 30PKR)</option>
-                <option value="jc">JazzCash (42c = 30PKR)</option>
+                <option value="ep">Easypaisa</option>
+                <option value="jc">JazzCash</option>
                 <option value="usdt">USDT (TRC20)</option>
-                <option value="ff">Free Fire Diamonds</option>
             </select>
             <div id="wd-opts" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;"></div>
             <button class="btn" style="margin-top:20px" onclick="requestWithdraw()">Withdraw Now</button>
         </div>
     </div>
 
-    <div id="view-tasks" class="view hidden"><div id="task-list"></div></div>
+    <div id="view-tasks" class="view hidden">
+        <div id="task-list"></div>
+    </div>
 
     <div id="view-profile" class="view hidden">
         <div class="card" style="text-align:center">
@@ -83,35 +84,47 @@
             <p id="p-name">Loading...</p>
         </div>
         <div class="card">
-            <h4>Payment Details</h4>
-            <input id="up-ff" placeholder="Free Fire UID">
-            <input id="up-ep-n" placeholder="Easypaisa Name">
-            <input id="up-ep-v" placeholder="Easypaisa Number">
-            <input id="up-jc-n" placeholder="JazzCash Name">
-            <input id="up-jc-v" placeholder="JazzCash Number">
+            <h4 style="margin:0 0 10px 0">Easypaisa Details</h4>
+            <input id="up-ep-n" placeholder="Easypaisa Account Name">
+            <input id="up-ep-v" placeholder="Easypaisa Account Number">
+            
+            <h4 style="margin:15px 0 10px 0">JazzCash Details</h4>
+            <input id="up-jc-n" placeholder="JazzCash Account Name">
+            <input id="up-jc-v" placeholder="JazzCash Account Number">
+            
+            <h4 style="margin:15px 0 10px 0">Crypto (USDT)</h4>
             <input id="up-usdt" placeholder="USDT TRC20 Address">
-            <button class="btn" onclick="saveProfile()">Save Settings</button>
+            
+            <button class="btn" style="margin-top:10px" onclick="saveProfile()">Save All Details</button>
         </div>
-        <div style="padding:15px"><button onclick="logout()" style="color:red; background:none; border:none; width:100%; font-weight:bold">Log Out</button></div>
+        <div style="padding:15px"><button onclick="logout()" style="color:red; background:none; border:none; width:100%; font-weight:bold">Logout Account</button></div>
     </div>
 
     <div id="view-admin" class="view hidden">
         <div class="card">
-            <h4>Create Task</h4>
+            <h4>Create New Task</h4>
             <input id="ad-t" placeholder="Task Name">
             <input id="ad-l" placeholder="Task Link">
             <input id="ad-s" type="number" placeholder="Total Stages (e.g. 3)">
-            <input id="ad-r" placeholder="Rewards per stage (e.g. 10,20,10)">
-            <textarea id="ad-d" placeholder="Task Description"></textarea>
-            <button class="btn" onclick="createTask()">Publish Task</button>
+            <input id="ad-r" placeholder="Rewards per stage (e.g. 10,20,50)">
+            <textarea id="ad-d" placeholder="Description..."></textarea>
+            <button class="btn" onclick="createTask()">Create Task</button>
         </div>
-        <div class="card"><h4>Manage Tasks</h4><div id="ad-manage"></div></div>
-        <div id="ad-subs"></div>
+
+        <div class="card">
+            <h4>Task Submissions (Approval)</h4>
+            <div id="ad-subs"></div>
+        </div>
+
+        <div class="card">
+            <h4>Existing Tasks</h4>
+            <div id="ad-manage"></div>
+        </div>
     </div>
 
     <nav id="main-nav" class="nav-bar hidden">
         <div class="nav-item active" onclick="switchV('home', this)">Shop</div>
-        <div class="nav-item" onclick="switchV('tasks', this)">Earn</div>
+        <div class="nav-item" onclick="switchV('tasks', this)">Tasks</div>
         <div class="nav-item" onclick="switchV('profile', this)">Profile</div>
         <div id="nav-admin" class="nav-item hidden" onclick="switchV('admin', this)">Admin</div>
     </nav>
@@ -121,7 +134,7 @@
         const SB_KEY = "sb_publishable_cs7l1-FeQnmB3Sl0bHfK7g_KK5qKlLh";
         const sb = supabase.createClient(SB_URL, SB_KEY);
         let userP = null, selectedCoins = 0;
-        const ADMIN = "sa7530006@gmail.com";
+        const ADMIN_EMAIL = "sa7530006@gmail.com";
 
         function notify(m) {
             const t = document.getElementById('toast');
@@ -138,8 +151,8 @@
             if (user) {
                 let { data: prof } = await sb.from('profiles').select('*').eq('id', user.id).single();
                 if (!prof) {
-                    const { data: newProf } = await sb.from('profiles').insert([{ id: user.id, email: user.email, full_name: user.user_metadata.full_name, br_coins: 0 }]).select().single();
-                    prof = newProf;
+                    const { data: newP } = await sb.from('profiles').insert([{ id: user.id, email: user.email, full_name: user.user_metadata.full_name, br_coins: 0 }]).select().single();
+                    prof = newP;
                 }
                 userP = prof;
                 initApp();
@@ -153,10 +166,18 @@
             document.getElementById('h-bal').innerText = userP.br_coins.toFixed(2);
             document.getElementById('p-bal').innerText = userP.br_coins.toFixed(2);
             document.getElementById('p-name').innerText = userP.full_name;
+            
+            // Fill Profile Fields
+            document.getElementById('up-ep-n').value = userP.ep_name || '';
+            document.getElementById('up-ep-v').value = userP.ep_no || '';
+            document.getElementById('up-jc-n').value = userP.jc_name || '';
+            document.getElementById('up-jc-v').value = userP.jc_no || '';
+            document.getElementById('up-usdt').value = userP.usdt_addr || '';
+
             document.getElementById('splash').classList.add('hidden');
             document.getElementById('main-header').classList.remove('hidden');
             document.getElementById('main-nav').classList.remove('hidden');
-            if(userP.email === ADMIN) document.getElementById('nav-admin').classList.remove('hidden');
+            if(userP.email === ADMIN_EMAIL) document.getElementById('nav-admin').classList.remove('hidden');
             switchV('home', document.querySelector('.nav-item'));
         }
 
@@ -181,7 +202,7 @@
                 for(let i=1; i<=t.stages; i++) lights += `<div class="light ${i <= sub.current_stage ? 'active' : ''}"></div>`;
                 
                 let btnTxt = sub.status === 'pending' ? 'Verifying...' : 'Start Stage ' + (sub.current_stage + 1);
-                if(sub.current_stage >= t.stages) btnTxt = "Completed";
+                if(sub.current_stage >= t.stages) btnTxt = "Completed ✅";
 
                 h += `<div class="card">
                     <b>${t.title}</b>
@@ -190,28 +211,26 @@
                     <button class="btn" ${sub.status === 'pending' || sub.current_stage >= t.stages ? 'disabled' : ''} onclick="startTask(this, '${t.id}', '${t.link}')">${btnTxt}</button>
                 </div>`;
             });
-            document.getElementById('task-list').innerHTML = h || 'No tasks.';
+            document.getElementById('task-list').innerHTML = h || '<p style="text-align:center">No Tasks available.</p>';
         }
 
         async function startTask(btn, tid, link) {
-            btn.innerText = "Verifying...";
-            btn.disabled = true;
             window.open(link, '_blank');
             await sb.from('task_submissions').upsert([{ user_id: userP.id, task_id: tid, status: 'pending' }], { onConflict: 'user_id, task_id' });
-            notify("Task is now under verification.");
+            btn.innerText = "Verifying..."; btn.disabled = true;
+            notify("Task sent for approval!");
         }
 
         // --- ADMIN LOGIC ---
         async function createTask() {
-            const task = {
+            const t = {
                 title: document.getElementById('ad-t').value,
                 link: document.getElementById('ad-l').value,
-                stages: document.getElementById('ad-s').value,
+                stages: parseInt(document.getElementById('ad-s').value),
                 stage_rewards: document.getElementById('ad-r').value,
-                description: document.getElementById('ad-d').value,
-                reward: 0 // Legacy field
+                description: document.getElementById('ad-d').value
             };
-            const { error } = await sb.from('tasks').insert([task]);
+            const { error } = await sb.from('tasks').insert([t]);
             if(error) notify("Error: " + error.message);
             else { notify("Task Created!"); fetchAdminTasks(); }
         }
@@ -219,15 +238,14 @@
         async function fetchAdminTasks() {
             const { data } = await sb.from('tasks').select('*');
             let h = '';
-            data.forEach(t => h += `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee;"><span>${t.title}</span> <button onclick="delTask('${t.id}')" style="color:red; background:none; border:none;">Delete</button></div>`);
+            data.forEach(t => h += `<div style="display:flex; justify-content:space-between; margin-top:10px;"><span>${t.title}</span> <button onclick="delTask('${t.id}')" style="color:red; background:none; border:none;">Delete</button></div>`);
             document.getElementById('ad-manage').innerHTML = h;
         }
 
         async function delTask(id) {
-            if(confirm("Delete task?")) {
-                const { error } = await sb.from('tasks').delete().eq('id', id);
-                if(error) notify(error.message);
-                else { notify("Deleted!"); fetchAdminTasks(); }
+            if(confirm("Delete Task?")) {
+                await sb.from('tasks').delete().eq('id', id);
+                fetchAdminTasks();
             }
         }
 
@@ -236,11 +254,11 @@
             let h = '';
             data.forEach(s => {
                 h += `<div class="card">
-                    <b>${s.profiles.email}</b><br>${s.tasks.title} (Stage ${s.current_stage + 1})
-                    <button class="btn" style="margin-top:10px" onclick="approveStage('${s.user_id}', '${s.task_id}', ${s.current_stage}, '${s.tasks.stage_rewards}')">Approve Stage</button>
+                    <b>User:</b> ${s.profiles.email}<br><b>Task:</b> ${s.tasks.title} (Stage ${s.current_stage + 1})
+                    <button class="btn" style="margin-top:10px" onclick="approveStage('${s.user_id}', '${s.task_id}', ${s.current_stage}, '${s.tasks.stage_rewards}')">Approve & Give Reward</button>
                 </div>`;
             });
-            document.getElementById('ad-subs').innerHTML = h;
+            document.getElementById('ad-subs').innerHTML = h || '<p>No pending submissions.</p>';
         }
 
         async function approveStage(uid, tid, curr, rewardsStr) {
@@ -249,24 +267,37 @@
             const { data: p } = await sb.from('profiles').select('br_coins').eq('id', uid).single();
             await sb.from('profiles').update({ br_coins: p.br_coins + amt }).eq('id', uid);
             await sb.from('task_submissions').update({ current_stage: curr + 1, status: 'none' }).match({ user_id: uid, task_id: tid });
-            notify("Rewarded!"); fetchSubs();
+            notify("Stage Approved!"); fetchSubs();
         }
 
-        // --- SHOP & PROFILE ---
+        // --- PROFILE & SHOP ---
+        async function saveProfile() {
+            const d = { 
+                ep_name: document.getElementById('up-ep-n').value, 
+                ep_no: document.getElementById('up-ep-v').value, 
+                jc_name: document.getElementById('up-jc-n').value, 
+                jc_no: document.getElementById('up-jc-v').value, 
+                usdt_addr: document.getElementById('up-usdt').value 
+            };
+            await sb.from('profiles').update(d).eq('id', userP.id);
+            notify("Details Saved Successfully!");
+        }
+
         function renderWd() {
             const m = document.getElementById('wd-method').value;
             const container = document.getElementById('wd-opts');
             let h = '';
             if(m === 'ep' || m === 'jc') {
-                [{p:30,c:42},{p:100,c:140},{p:200,c:280}].forEach(o => h += `<div class="card" style="margin:0; text-align:center" onclick="selectedCoins=${o.c}; notify('Selected ${o.p} PKR')">${o.p} PKR</div>`);
-            }
+                [{p:30,c:42},{p:100,c:140},{p:200,c:280}].forEach(o => h += `<div class="card" style="margin:0; text-align:center" onclick="selectedCoins=${o.c}; notify('Selected ${o.p} PKR')"><b>${o.p} PKR</b></div>`);
+            } else { h = '<p style="grid-column:span 2">Enter USDT address in profile to withdraw.</p>'; }
             container.innerHTML = h;
         }
 
-        async function saveProfile() {
-            const d = { ff_uid: document.getElementById('up-ff').value, ep_name: document.getElementById('up-ep-n').value, ep_no: document.getElementById('up-ep-v').value, jc_name: document.getElementById('up-jc-n').value, jc_no: document.getElementById('up-jc-v').value, usdt_addr: document.getElementById('up-usdt').value };
-            await sb.from('profiles').update(d).eq('id', userP.id);
-            notify("Saved!");
+        async function requestWithdraw() {
+            if(userP.br_coins < selectedCoins) return notify("Not enough coins!");
+            await sb.from('profiles').update({ br_coins: userP.br_coins - selectedCoins }).eq('id', userP.id);
+            notify("Your withdrawal received in 2 business days");
+            setTimeout(() => location.reload(), 2000);
         }
 
         function logout() { sb.auth.signOut(); location.reload(); }
