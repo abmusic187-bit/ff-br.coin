@@ -43,7 +43,7 @@
         .light { width: 14px; height: 14px; border-radius: 50%; background: #e0e0e0; border: 1px solid #ccc; }
         .light.active { background: var(--red); box-shadow: 0 0 8px var(--red); }
 
-        #splash { position: fixed; inset: 0; background: white; display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        #splash { position: fixed; inset: 0; background: white; display: flex; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.5s ease; }
         #toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 10001; background: #333; color: white; padding: 12px 20px; border-radius: 8px; display: none; }
         
         .task-reward-tag { color: var(--blue); font-weight: 800; font-size: 14px; margin-bottom: 5px; display: block; }
@@ -156,10 +156,17 @@
             setTimeout(() => t.style.display = 'none', 3000);
         }
 
+        function hideSplash() {
+            const s = document.getElementById('splash');
+            s.style.opacity = '0';
+            setTimeout(() => s.classList.add('hidden'), 500);
+        }
+
         function showSplash(callback) {
             const s = document.getElementById('splash');
+            s.style.opacity = '1';
             s.classList.remove('hidden');
-            setTimeout(() => { s.classList.add('hidden'); if(callback) callback(); }, 1000);
+            setTimeout(() => { if(callback) callback(); hideSplash(); }, 800);
         }
 
         function buttonLoading(btnId, start) {
@@ -179,7 +186,7 @@
                 userP = prof;
                 initApp();
             } else {
-                document.getElementById('splash').classList.add('hidden');
+                hideSplash();
                 document.getElementById('view-auth').classList.remove('hidden');
             }
         };
@@ -192,11 +199,15 @@
             setProfileField('up-jc-v', userP.jc_no);
             setProfileField('up-usdt', userP.usdt_addr);
 
-            document.getElementById('splash').classList.add('hidden');
             document.getElementById('main-header').classList.remove('hidden');
             document.getElementById('main-nav').classList.remove('hidden');
             if(userP.email === ADMIN_EMAIL) document.getElementById('nav-admin').classList.remove('hidden');
-            switchV('home', document.querySelector('.nav-item'));
+            
+            // Bypass full splash for initial view load to prevent sticking
+            document.querySelectorAll('.view').forEach(x => x.classList.add('hidden'));
+            document.getElementById('view-home').classList.remove('hidden');
+            renderWd();
+            hideSplash();
         }
 
         function setProfileField(id, val) {
@@ -227,8 +238,9 @@
             const { data: tasks } = await sb.from('tasks').select('*');
             const { data: subs } = await sb.from('task_submissions').select('*').eq('user_id', userP.id);
             let h = '';
+            if(!tasks) return;
             tasks.forEach(t => {
-                const sub = subs.find(s => s.task_id === t.id) || { current_stage: 0, status: 'none' };
+                const sub = subs?.find(s => s.task_id === t.id) || { current_stage: 0, status: 'none' };
                 let rewardsArr = t.stage_rewards.split(',').map(Number);
                 let total = rewardsArr.reduce((a,b)=>a+b, 0);
                 
@@ -254,7 +266,7 @@
                     </button>
                 </div>`;
             });
-            document.getElementById('task-list').innerHTML = h;
+            document.getElementById('task-list').innerHTML = h || '<p style="text-align:center">No tasks available.</p>';
         }
 
         async function startTask(btn, tid, link) {
@@ -290,7 +302,7 @@
                     <b>${s.profiles?.email}</b><br>
                     Task: ${s.tasks?.title}<br>
                     Approving: Stage ${s.current_stage + 1}<br>
-                    <button class="btn" style="padding:8px; margin-top:5px" onclick="approveStage('${s.user_id}', '${s.task_id}', ${s.current_stage}, '${s.tasks?.stage_rewards}')">
+                    <button class="btn" style="padding:8px; margin-top:5px; height:auto" onclick="approveStage('${s.user_id}', '${s.task_id}', ${s.current_stage}, '${s.tasks?.stage_rewards}')">
                         Approve & Pay
                     </button>
                 </div>`;
@@ -303,7 +315,6 @@
             const amt = rewards[curr] || 0;
             const nextStage = curr + 1;
             
-            // NOTE: Use a Database RPC function for security
             const { error } = await sb.rpc('approve_task_stage', { 
                 target_user_id: uid, 
                 target_task_id: tid, 
@@ -325,11 +336,7 @@
             if(!userP.jc_no) d.jc_no = document.getElementById('up-jc-v').value;
             if(!userP.usdt_addr) d.usdt_addr = document.getElementById('up-usdt').value;
             
-            if(Object.keys(d).length === 0) {
-                notify("No changes to save.");
-                buttonLoading('save-prof-btn', false);
-                return;
-            }
+            if(Object.keys(d).length === 0) { notify("No changes to save."); buttonLoading('save-prof-btn', false); return; }
 
             const { error } = await sb.from('profiles').update(d).eq('id', userP.id);
             if(!error) { userP = { ...userP, ...d }; notify("Saved!"); initApp(); }
@@ -343,26 +350,19 @@
             buttonLoading('wd-btn', true);
             const method = document.getElementById('wd-method').value;
             
-            // Verify payment info exists for chosen method
             if((method === 'ep' && !userP.ep_no) || (method === 'jc' && !userP.jc_no) || (method === 'usdt' && !userP.usdt_addr)) {
                 notify("Fill payment details in Profile first!");
                 buttonLoading('wd-btn', false);
                 return;
             }
 
-            // Secure Deduction: Use RPC in production. 
-            // This is a client-side update (Warning: Hackable without RLS)
             const newBal = userP.br_coins - selectedCoins;
             const { error } = await sb.from('profiles').update({ br_coins: newBal }).eq('id', userP.id);
             
             if(!error) {
                 await sb.from('withdrawals').insert([{ user_id: userP.id, amount_pkr: selectedPKR, amount_coins: selectedCoins, method: method, status: 'pending' }]);
-                userP.br_coins = newBal; 
-                updateUI(); 
-                notify("Withdraw Sent!");
-            } else {
-                notify("Withdrawal failed.");
-            }
+                userP.br_coins = newBal; updateUI(); notify("Withdraw Sent!");
+            } else { notify("Withdrawal failed."); }
             buttonLoading('wd-btn', false);
         }
 
@@ -385,7 +385,7 @@
             let h = '';
             data?.forEach(w => {
                 let det = w.method === 'ep' ? `EP: ${w.profiles.ep_name} (${w.profiles.ep_no})` : w.method === 'jc' ? `JC: ${w.profiles.jc_name} (${w.profiles.jc_no})` : `USDT: ${w.profiles.usdt_addr}`;
-                h += `<div class="admin-sub-card"><b>${w.profiles.email}</b><br><span style="color:green">${w.amount_pkr} PKR</span><br><small>${det}</small><br><button class="btn" style="padding:5px; margin-top:5px; height:auto; font-size:12px" onclick="markPaid('${w.id}')">Mark Paid</button></div>`;
+                h += `<div class="admin-sub-card"><b>${w.profiles.email}</b><br><span style="color:green">${w.amount_pkr} PKR</span><br><small>${det}</small><br><button class="btn" style="padding:5px; height:auto; font-size:12px" onclick="markPaid('${w.id}')">Mark Paid</button></div>`;
             });
             document.getElementById('ad-withdrawals').innerHTML = h || 'No requests.';
         }
@@ -396,4 +396,30 @@
             const { data } = await sb.from('tasks').select('*');
             let h = '';
             data?.forEach(t => h += `<div class="admin-sub-card"><b>${t.title}</b><button class="btn btn-red" style="padding:5px; height:auto; font-size:12px" onclick="deleteTask('${t.id}')">Delete Task</button></div>`);
-         
+            document.getElementById('ad-task-manage').innerHTML = h || 'No tasks.';
+        }
+
+        async function deleteTask(id) { if(confirm("Delete Task?")) { await sb.from('tasks').delete().eq('id', id); fetchAdminTasks(); } }
+
+        async function createTask() {
+            const t = { 
+                title: document.getElementById('ad-t').value, 
+                link: document.getElementById('ad-l').value, 
+                stages: parseInt(document.getElementById('ad-s').value), 
+                stage_rewards: document.getElementById('ad-r').value, 
+                description: document.getElementById('ad-d').value 
+            };
+            await sb.from('tasks').insert([t]); notify("Task Created!"); fetchAdminTasks();
+        }
+
+        async function loginWithGoogle() { 
+            buttonLoading('login-btn', true); 
+            await sb.auth.signInWithOAuth({ 
+                provider: 'google',
+                options: { redirectTo: window.location.origin }
+            }); 
+        }
+        function logout() { sb.auth.signOut(); location.reload(); }
+    </script>
+</body>
+</html>
