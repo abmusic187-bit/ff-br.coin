@@ -12,7 +12,6 @@
         body { background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; }
         .hidden { display: none !important; }
 
-        /* Header: Blue Top Border */
         .app-header { 
             display: flex; justify-content: space-between; align-items: center; 
             padding: 15px 20px; background: white; border-top: 6px solid var(--blue);
@@ -21,7 +20,6 @@
         .logo { font-family: 'Montserrat', sans-serif; font-weight: 900; color: var(--blue); font-size: 20px; }
         .balance-chip { font-weight: 800; color: black; font-size: 15px; }
 
-        /* Bottom Nav: Blue */
         .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--blue); display: flex; justify-content: space-around; padding: 15px 0; z-index: 1000; }
         .nav-item { color: rgba(255,255,255,0.6); font-size: 11px; cursor: pointer; font-weight: 700; text-transform: uppercase; }
         .nav-item.active { color: white; border-bottom: 2px solid white; }
@@ -34,7 +32,6 @@
         }
         .btn:disabled { background: #ccc; cursor: not-allowed; }
         
-        /* Spinner Logic */
         .spinner { width: 18px; height: 18px; border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid white; border-radius: 50%; animation: spin 0.8s linear infinite; display: none; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
@@ -48,7 +45,7 @@
         #toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 10001; background: #333; color: white; padding: 12px 20px; border-radius: 8px; display: none; }
         
         .task-reward-tag { color: var(--blue); font-weight: 800; font-size: 14px; margin-bottom: 5px; display: block; }
-        .description-link { color: var(--blue); text-decoration: underline; cursor: pointer; }
+        .admin-sub-card { border-left: 5px solid var(--blue); margin-bottom: 10px; padding: 10px; background: #f9f9f9; }
     </style>
 </head>
 <body>
@@ -65,8 +62,7 @@
         <h1 class="logo" style="font-size:40px">BR.COIN</h1>
         <div style="padding:40px">
             <button class="btn" id="login-btn" onclick="loginWithGoogle()">
-                <div class="spinner"></div>
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20"> Sign in with Google
+                <div class="spinner"></div> Sign in with Google
             </button>
         </div>
     </div>
@@ -74,7 +70,7 @@
     <div id="view-home" class="view hidden">
         <div class="card">
             <h3>Withdraw PKR</h3>
-            <p style="font-size:12px; color:gray">Rate: 42 Coins = 30 PKR</p>
+            <p style="font-size:12px; color:gray">42 Coins = 30 PKR</p>
             <select id="wd-method" onchange="renderWd()">
                 <option value="ep">Easypaisa</option>
                 <option value="jc">JazzCash</option>
@@ -87,9 +83,7 @@
         </div>
     </div>
 
-    <div id="view-tasks" class="view hidden">
-        <div id="task-list"></div>
-    </div>
+    <div id="view-tasks" class="view hidden"><div id="task-list"></div></div>
 
     <div id="view-profile" class="view hidden">
         <div class="card" style="text-align:center">
@@ -97,40 +91,40 @@
             <p id="p-name">Loading...</p>
         </div>
         <div class="card">
-            <h4 style="margin:0 0 10px 0">Easypaisa Details</h4>
-            <input id="up-ep-n" placeholder="Easypaisa Account Name">
-            <input id="up-ep-v" placeholder="Easypaisa Account Number">
-            <h4 style="margin:15px 0 10px 0">JazzCash Details</h4>
-            <input id="up-jc-n" placeholder="JazzCash Account Name">
-            <input id="up-jc-v" placeholder="JazzCash Account Number">
-            <h4 style="margin:15px 0 10px 0">Crypto (USDT)</h4>
-            <input id="up-usdt" placeholder="USDT TRC20 Address">
-            <button class="btn" onclick="saveProfile()">
-                <div class="spinner"></div> <span>Save Details</span>
+            <h4 style="margin:0">EasyPaisa</h4>
+            <input id="up-ep-n" placeholder="Name"> <input id="up-ep-v" placeholder="Number">
+            <h4 style="margin:10px 0 0 0">JazzCash</h4>
+            <input id="up-jc-n" placeholder="Name"> <input id="up-jc-v" placeholder="Number">
+            <h4 style="margin:10px 0 0 0">USDT Address</h4>
+            <input id="up-usdt" placeholder="TRC20 Address">
+            <button class="btn" id="save-prof-btn" onclick="saveProfile()">
+                <div class="spinner"></div> <span>Save All Details</span>
             </button>
         </div>
-        <div style="padding:15px"><button onclick="logout()" style="color:red; background:none; border:none; width:100%; font-weight:bold">Logout Account</button></div>
+        <div style="padding:15px"><button onclick="logout()" style="color:red; background:none; border:none; width:100%; font-weight:bold">Logout</button></div>
     </div>
 
     <div id="view-admin" class="view hidden">
         <div class="card">
-            <h4>Create New Task</h4>
-            <input id="ad-t" placeholder="Task Name">
-            <input id="ad-l" placeholder="Task Link">
-            <input id="ad-s" type="number" placeholder="Total Stages (e.g. 3)">
-            <input id="ad-r" placeholder="Rewards per stage (e.g. 10,20,50)">
-            <textarea id="ad-d" placeholder="Description..."></textarea>
-            <button class="btn" onclick="createTask()">
-                <div class="spinner"></div> <span>Create Task</span>
-            </button>
+            <h4>Task Submissions</h4>
+            <div id="ad-subs"></div>
         </div>
-        <div class="card"><h4>Approvals</h4><div id="ad-subs"></div></div>
-        <div class="card"><h4>Existing Tasks</h4><div id="ad-manage"></div></div>
+        <div class="card" style="border-top: 5px solid var(--red);">
+            <h4>Withdrawal Requests (Real Money)</h4>
+            <div id="ad-withdrawals"></div>
+        </div>
+        <div class="card">
+            <h4>Create Task</h4>
+            <input id="ad-t" placeholder="Title"> <input id="ad-l" placeholder="Link">
+            <input id="ad-s" type="number" placeholder="Stages"> <input id="ad-r" placeholder="Rewards (e.g. 10,20)">
+            <textarea id="ad-d" placeholder="Description"></textarea>
+            <button class="btn" onclick="createTask()">Create</button>
+        </div>
     </div>
 
     <nav id="main-nav" class="nav-bar hidden">
         <div class="nav-item active" onclick="switchV('home', this)">Shop</div>
-        <div class="nav-item" onclick="taskSwitch('tasks', this)">Tasks</div>
+        <div class="nav-item" onclick="switchV('tasks', this)">Tasks</div>
         <div class="nav-item" onclick="switchV('profile', this)">Profile</div>
         <div id="nav-admin" class="nav-item hidden" onclick="switchV('admin', this)">Admin</div>
     </nav>
@@ -139,7 +133,7 @@
         const SB_URL = "https://zzehzlqhgjevwauycgdi.supabase.co"; 
         const SB_KEY = "sb_publishable_cs7l1-FeQnmB3Sl0bHfK7g_KK5qKlLh";
         const sb = supabase.createClient(SB_URL, SB_KEY);
-        let userP = null, selectedCoins = 0;
+        let userP = null, selectedCoins = 0, selectedPKR = 0;
         const ADMIN_EMAIL = "sa7530006@gmail.com";
 
         function notify(m) {
@@ -151,40 +145,20 @@
         function showSplash(callback) {
             const s = document.getElementById('splash');
             s.classList.remove('hidden');
-            setTimeout(() => {
-                s.classList.add('hidden');
-                if(callback) callback();
-            }, 1000);
+            setTimeout(() => { s.classList.add('hidden'); if(callback) callback(); }, 1000);
         }
 
         function buttonLoading(btnId, start) {
             const btn = document.getElementById(btnId);
             const spin = btn.querySelector('.spinner');
-            const txt = btn.querySelector('span') || btn.lastChild;
-            if(start) {
-                btn.disabled = true;
-                spin.style.display = 'block';
-            } else {
-                setTimeout(() => {
-                    btn.disabled = false;
-                    spin.style.display = 'none';
-                }, 3000);
-            }
-        }
-
-        async function loginWithGoogle() {
-            buttonLoading('login-btn', true);
-            await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+            if(start) { btn.disabled = true; spin.style.display = 'block'; }
+            else { setTimeout(() => { btn.disabled = false; spin.style.display = 'none'; }, 3000); }
         }
 
         window.onload = async () => {
             const { data: { user } } = await sb.auth.getUser();
             if (user) {
                 let { data: prof } = await sb.from('profiles').select('*').eq('id', user.id).single();
-                if (!prof) {
-                    const { data: newP } = await sb.from('profiles').insert([{ id: user.id, email: user.email, full_name: user.user_metadata.full_name, br_coins: 0 }]).select().single();
-                    prof = newP;
-                }
                 userP = prof;
                 initApp();
             } else {
@@ -194,10 +168,7 @@
         };
 
         function initApp() {
-            document.getElementById('h-bal').innerText = userP.br_coins.toFixed(2);
-            document.getElementById('p-bal').innerText = userP.br_coins.toFixed(2);
-            document.getElementById('p-name').innerText = userP.full_name;
-            
+            updateUI();
             document.getElementById('up-ep-n').value = userP.ep_name || '';
             document.getElementById('up-ep-v').value = userP.ep_no || '';
             document.getElementById('up-jc-n').value = userP.jc_name || '';
@@ -211,6 +182,12 @@
             switchV('home', document.querySelector('.nav-item'));
         }
 
+        function updateUI() {
+            document.getElementById('h-bal').innerText = userP.br_coins.toFixed(2);
+            document.getElementById('p-bal').innerText = userP.br_coins.toFixed(2);
+            document.getElementById('p-name').innerText = userP.full_name;
+        }
+
         function switchV(v, el) {
             showSplash(() => {
                 document.querySelectorAll('.view').forEach(x => x.classList.add('hidden'));
@@ -219,48 +196,91 @@
                 if(el) el.classList.add('active');
                 if(v === 'home') renderWd();
                 if(v === 'tasks') fetchTasks();
-                if(v === 'admin') { fetchAdminTasks(); fetchSubs(); }
+                if(v === 'admin') { fetchSubs(); fetchWithdrawals(); }
             });
         }
 
-        function taskSwitch(v, el) { switchV(v, el); }
+        // --- PROFILE LOGIC ---
+        async function saveProfile() {
+            buttonLoading('save-prof-btn', true);
+            const d = {
+                ep_name: document.getElementById('up-ep-n').value,
+                ep_no: document.getElementById('up-ep-v').value,
+                jc_name: document.getElementById('up-jc-n').value,
+                jc_no: document.getElementById('up-jc-v').value,
+                usdt_addr: document.getElementById('up-usdt').value
+            };
+            const { error } = await sb.from('profiles').update(d).eq('id', userP.id);
+            if(!error) {
+                userP = { ...userP, ...d };
+                notify("Profile Updated Permanently!");
+            }
+            buttonLoading('save-prof-btn', false);
+        }
 
         // --- WITHDRAW LOGIC ---
         function renderWd() {
             const m = document.getElementById('wd-method').value;
             const container = document.getElementById('wd-opts');
             let h = '';
-            if(m === 'ep' || m === 'jc') {
-                const rates = [
-                    {p: 300, c: 420}, {p: 500, c: 700}, 
-                    {p: 1000, c: 1400}, {p: 2000, c: 2800}
-                ];
-                rates.forEach(o => h += `<div class="card" style="margin:0; text-align:center; border:2px solid #eee; cursor:pointer;" onclick="setWd(${o.c}, ${o.p}, this)"><b>${o.p} PKR</b></div>`);
-            } else { h = '<p style="grid-column:span 2">Enter address in profile.</p>'; }
+            const rates = [{p:300,c:420}, {p:500,c:700}, {p:1000,c:1400}, {p:2000,c:2800}];
+            rates.forEach(o => h += `<div class="card" style="margin:0; text-align:center; border:2px solid #eee" onclick="setWd(${o.c}, ${o.p}, this)"><b>${o.p} PKR</b></div>`);
             container.innerHTML = h;
         }
 
-        function setWd(coins, pkr, el) {
-            selectedCoins = coins;
-            document.querySelectorAll('#wd-opts .card').forEach(c => c.style.borderColor = '#eee');
+        function setWd(c, p, el) {
+            selectedCoins = c; selectedPKR = p;
+            document.querySelectorAll('#wd-opts .card').forEach(x => x.style.borderColor = '#eee');
             el.style.borderColor = '#0066ff';
-            notify(`Selected ${pkr} PKR`);
         }
 
         async function requestWithdraw() {
-            if(selectedCoins === 0) return notify("Select amount first!");
+            if(selectedCoins === 0) return notify("Select amount!");
             if(userP.br_coins < selectedCoins) return notify("Not enough coins!");
             
             buttonLoading('wd-btn', true);
-            const newBal = userP.br_coins - selectedCoins;
-            const { error } = await sb.from('profiles').update({ br_coins: newBal }).eq('id', userP.id);
+            const method = document.getElementById('wd-method').value;
             
-            if(!error) {
-                userP.br_coins = newBal;
-                document.getElementById('h-bal').innerText = newBal.toFixed(2);
-                notify("Withdrawal received in 2 business days");
-            }
+            // 1. Record withdrawal for admin
+            await sb.from('withdrawals').insert([{
+                user_id: userP.id,
+                amount_pkr: selectedPKR,
+                amount_coins: selectedCoins,
+                method: method,
+                status: 'pending'
+            }]);
+
+            // 2. Deduct coins
+            const newBal = userP.br_coins - selectedCoins;
+            await sb.from('profiles').update({ br_coins: newBal }).eq('id', userP.id);
+            
+            userP.br_coins = newBal;
+            updateUI();
+            notify("Withdrawal received in 2 business days");
             buttonLoading('wd-btn', false);
+        }
+
+        // --- ADMIN VIEW WITHDRAWALS ---
+        async function fetchWithdrawals() {
+            const { data } = await sb.from('withdrawals').select('*, profiles(*)').eq('status', 'pending');
+            let h = '';
+            data?.forEach(w => {
+                let details = w.method === 'ep' ? `EP: ${w.profiles.ep_name} (${w.profiles.ep_no})` : 
+                              w.method === 'jc' ? `JC: ${w.profiles.jc_name} (${w.profiles.jc_no})` : `USDT: ${w.profiles.usdt_addr}`;
+                
+                h += `<div class="admin-sub-card">
+                    <b>${w.profiles.email}</b><br>
+                    Amount: <span style="color:green">${w.amount_pkr} PKR</span><br>
+                    <small>${details}</small><br>
+                    <button class="btn" style="padding:5px; margin-top:5px" onclick="markPaid('${w.id}')">Mark as Paid</button>
+                </div>`;
+            });
+            document.getElementById('ad-withdrawals').innerHTML = h || '<p>No pending withdrawals.</p>';
+        }
+
+        async function markPaid(id) {
+            await sb.from('withdrawals').update({ status: 'paid' }).eq('id', id);
+            notify("Marked as Paid!"); fetchWithdrawals();
         }
 
         // --- TASK LOGIC ---
@@ -270,83 +290,61 @@
             let h = '';
             tasks.forEach(t => {
                 const sub = subs.find(s => s.task_id === t.id) || { current_stage: 0, status: 'none' };
-                let totalReward = t.stage_rewards.split(',').reduce((a, b) => Number(a) + Number(b), 0);
+                let rewardsArr = t.stage_rewards.split(',').map(Number);
+                let total = rewardsArr.reduce((a,b)=>a+b, 0);
                 
                 let lights = '';
                 for(let i=1; i<=t.stages; i++) lights += `<div class="light ${i <= sub.current_stage ? 'active' : ''}"></div>`;
-                
                 let btnTxt = sub.status === 'pending' ? 'Verifying...' : 'Start Stage ' + (sub.current_stage + 1);
                 if(sub.current_stage >= t.stages) btnTxt = "Completed ✅";
 
                 h += `<div class="card">
-                    <span class="task-reward-tag">Total Prize: ${totalReward} Coins</span>
+                    <span class="task-reward-tag">Prize: ${total} Coins</span>
                     <b>${t.title}</b>
                     <div class="stage-box">${lights}</div>
-                    <p style="font-size:12px; color:#666">${t.description}</p>
+                    <p style="font-size:12px">${t.description}</p>
                     <button class="btn" ${sub.status === 'pending' || sub.current_stage >= t.stages ? 'disabled' : ''} onclick="startTask(this, '${t.id}', '${t.link}')">
                         <div class="spinner"></div> <span>${btnTxt}</span>
                     </button>
                 </div>`;
             });
-            document.getElementById('task-list').innerHTML = h || '<p style="text-align:center">No Tasks available.</p>';
+            document.getElementById('task-list').innerHTML = h;
         }
 
         async function startTask(btn, tid, link) {
             const spin = btn.querySelector('.spinner');
-            const txt = btn.querySelector('span');
-            btn.disabled = true;
-            spin.style.display = 'block';
-            txt.innerText = 'Verifying...';
-
+            btn.disabled = true; spin.style.display = 'block';
             setTimeout(async () => {
                 window.open(link, '_blank');
                 await sb.from('task_submissions').upsert([{ user_id: userP.id, task_id: tid, status: 'pending' }], { onConflict: 'user_id, task_id' });
-                notify("Approval request sent!");
+                notify("Sent for Approval!");
             }, 3000);
         }
 
-        // --- ADMIN / PROFILE ---
+        async function fetchSubs() {
+            const { data } = await sb.from('task_submissions').select('*, profiles(email), tasks(title, stages, stage_rewards)').eq('status', 'pending');
+            let h = '';
+            data?.forEach(s => {
+                h += `<div class="admin-sub-card">
+                    <b>${s.profiles.email}</b> - ${s.tasks.title}<br>
+                    Approving Stage: ${s.current_stage + 1}<br>
+                    <button class="btn" style="padding:8px" onclick="approveStage('${s.user_id}', '${s.task_id}', ${s.current_stage}, '${s.tasks.stage_rewards}')">Approve & Pay</button>
+                </div>`;
+            });
+            document.getElementById('ad-subs').innerHTML = h || 'No submissions.';
+        }
+
         async function approveStage(uid, tid, curr, rewardsStr) {
             const rewards = rewardsStr.split(',').map(Number);
             const amt = rewards[curr] || 0;
             const { data: p } = await sb.from('profiles').select('br_coins').eq('id', uid).single();
             await sb.from('profiles').update({ br_coins: p.br_coins + amt }).eq('id', uid);
             await sb.from('task_submissions').update({ current_stage: curr + 1, status: 'none' }).match({ user_id: uid, task_id: tid });
-            notify("User Rewarded!"); fetchSubs();
+            notify("Reward Sent!"); fetchSubs();
         }
 
-        async function saveProfile() {
-            const d = { ep_name: document.getElementById('up-ep-n').value, ep_no: document.getElementById('up-ep-v').value, jc_name: document.getElementById('up-jc-n').value, jc_no: document.getElementById('up-jc-v').value, usdt_addr: document.getElementById('up-usdt').value };
-            await sb.from('profiles').update(d).eq('id', userP.id);
-            notify("Details Saved!");
-        }
-
-        // Admin creation/deletion logic remains same as previous version...
-        async function createTask() {
-            const t = { title: document.getElementById('ad-t').value, link: document.getElementById('ad-l').value, stages: parseInt(document.getElementById('ad-s').value), stage_rewards: document.getElementById('ad-r').value, description: document.getElementById('ad-d').value };
-            await sb.from('tasks').insert([t]);
-            notify("Task Created!"); fetchAdminTasks();
-        }
-
-        async function fetchAdminTasks() {
-            const { data } = await sb.from('tasks').select('*');
-            let h = '';
-            data.forEach(t => h += `<div style="display:flex; justify-content:space-between; margin-top:10px;"><span>${t.title}</span> <button onclick="delTask('${t.id}')" style="color:red; background:none; border:none;">Delete</button></div>`);
-            document.getElementById('ad-manage').innerHTML = h;
-        }
-
-        async function delTask(id) { if(confirm("Delete?")) { await sb.from('tasks').delete().eq('id', id); fetchAdminTasks(); } }
-
-        async function fetchSubs() {
-            const { data } = await sb.from('task_submissions').select('*, profiles(email), tasks(title, stages, stage_rewards)').eq('status', 'pending');
-            let h = '';
-            data.forEach(s => {
-                h += `<div class="card"><b>${s.profiles.email}</b><br>${s.tasks.title} (Stage ${s.current_stage + 1})<button class="btn" onclick="approveStage('${s.user_id}', '${s.task_id}', ${s.current_stage}, '${s.tasks.stage_rewards}')">Approve</button></div>`;
-            });
-            document.getElementById('ad-subs').innerHTML = h;
-        }
-
+        async function loginWithGoogle() { buttonLoading('login-btn', true); await sb.auth.signInWithOAuth({ provider: 'google' }); }
         function logout() { sb.auth.signOut(); location.reload(); }
     </script>
 </body>
-            </html>
+                </html>
