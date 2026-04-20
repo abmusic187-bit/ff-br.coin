@@ -48,6 +48,7 @@
         
         .task-reward-tag { color: var(--blue); font-weight: 800; font-size: 14px; margin-bottom: 5px; display: block; }
         .admin-sub-card { border-left: 5px solid var(--blue); margin-bottom: 10px; padding: 10px; background: #f9f9f9; }
+        .warning-text { color: var(--red); font-size: 11px; font-weight: bold; margin-bottom: 10px; display: block; }
     </style>
 </head>
 <body>
@@ -72,7 +73,7 @@
     <div id="view-home" class="view hidden">
         <div class="card">
             <h3>Withdraw PKR</h3>
-            <p style="font-size:12px; color:gray">42 Coins = 30 PKR</p>
+            <p style="font-size:12px; color:gray">Standard Rate: 1.4 Coins = 1 PKR</p>
             <select id="wd-method" onchange="renderWd()">
                 <option value="ep">Easypaisa</option>
                 <option value="jc">JazzCash</option>
@@ -95,17 +96,20 @@
             <p id="p-name">Loading...</p>
         </div>
         <div class="card">
+            <span class="warning-text">⚠️ Warning: Payment details are permanent once saved.</span>
             <h4 style="margin:0">EasyPaisa</h4>
-            <input id="up-ep-n" placeholder="Name"> <input id="up-ep-v" placeholder="Number">
+            <input id="up-ep-n" placeholder="Account Name"> 
+            <input id="up-ep-v" type="tel" placeholder="Mobile Number">
             <h4 style="margin:10px 0 0 0">JazzCash</h4>
-            <input id="up-jc-n" placeholder="Name"> <input id="up-jc-v" placeholder="Number">
+            <input id="up-jc-n" placeholder="Account Name"> 
+            <input id="up-jc-v" type="tel" placeholder="Mobile Number">
             <h4 style="margin:10px 0 0 0">USDT Address</h4>
-            <input id="up-usdt" placeholder="TRC20 Address">
+            <input id="up-usdt" placeholder="TRC20 Network Address">
             <button class="btn" id="save-prof-btn" onclick="saveProfile()">
                 <div class="spinner"></div> <span>Save Details (Permanent)</span>
             </button>
         </div>
-        <div style="padding:15px"><button onclick="logout()" style="color:red; background:none; border:none; width:100%; font-weight:bold">Logout</button></div>
+        <div style="padding:15px"><button onclick="logout()" style="color:red; background:none; border:none; width:100%; font-weight:bold; cursor:pointer">Logout Account</button></div>
     </div>
 
     <div id="view-admin" class="view hidden">
@@ -124,8 +128,9 @@
         <div class="card">
             <h4>Create New Task</h4>
             <input id="ad-t" placeholder="Title"> <input id="ad-l" placeholder="Link">
-            <input id="ad-s" type="number" placeholder="Stages"> <input id="ad-r" placeholder="Rewards (e.g. 10,20)">
-            <textarea id="ad-d" placeholder="Description"></textarea>
+            <input id="ad-s" type="number" placeholder="Stages (e.g. 3)"> 
+            <input id="ad-r" placeholder="Rewards (e.g. 10,20,30)">
+            <textarea id="ad-d" placeholder="Task Instructions/Description"></textarea>
             <button class="btn" onclick="createTask()">Create Task</button>
         </div>
     </div>
@@ -257,7 +262,6 @@
             const span = btn.querySelector('span');
             btn.disabled = true; spin.style.display = 'block'; span.innerText = "Processing...";
             
-            // 1. Log to DB first
             const { error } = await sb.from('task_submissions').upsert([{ 
                 user_id: userP.id, 
                 task_id: tid, 
@@ -267,10 +271,9 @@
             if(!error) {
                 window.open(link, '_blank');
                 notify("Sent for Approval!");
-                fetchTasks(); // Refresh UI to show "Verifying..."
+                fetchTasks();
             } else {
-                console.error(error);
-                notify("Error: Start failed.");
+                notify("Error starting task.");
                 btn.disabled = false; spin.style.display = 'none'; span.innerText = "Try Again";
             }
         }
@@ -300,6 +303,7 @@
             const amt = rewards[curr] || 0;
             const nextStage = curr + 1;
             
+            // NOTE: Use a Database RPC function for security
             const { error } = await sb.rpc('approve_task_stage', { 
                 target_user_id: uid, 
                 target_task_id: tid, 
@@ -320,6 +324,13 @@
             if(!userP.jc_name) d.jc_name = document.getElementById('up-jc-n').value;
             if(!userP.jc_no) d.jc_no = document.getElementById('up-jc-v').value;
             if(!userP.usdt_addr) d.usdt_addr = document.getElementById('up-usdt').value;
+            
+            if(Object.keys(d).length === 0) {
+                notify("No changes to save.");
+                buttonLoading('save-prof-btn', false);
+                return;
+            }
+
             const { error } = await sb.from('profiles').update(d).eq('id', userP.id);
             if(!error) { userP = { ...userP, ...d }; notify("Saved!"); initApp(); }
             buttonLoading('save-prof-btn', false);
@@ -328,13 +339,29 @@
         async function requestWithdraw() {
             if(selectedCoins === 0) return notify("Select amount!");
             if(userP.br_coins < selectedCoins) return notify("Not enough coins!");
+            
             buttonLoading('wd-btn', true);
             const method = document.getElementById('wd-method').value;
+            
+            // Verify payment info exists for chosen method
+            if((method === 'ep' && !userP.ep_no) || (method === 'jc' && !userP.jc_no) || (method === 'usdt' && !userP.usdt_addr)) {
+                notify("Fill payment details in Profile first!");
+                buttonLoading('wd-btn', false);
+                return;
+            }
+
+            // Secure Deduction: Use RPC in production. 
+            // This is a client-side update (Warning: Hackable without RLS)
             const newBal = userP.br_coins - selectedCoins;
             const { error } = await sb.from('profiles').update({ br_coins: newBal }).eq('id', userP.id);
+            
             if(!error) {
                 await sb.from('withdrawals').insert([{ user_id: userP.id, amount_pkr: selectedPKR, amount_coins: selectedCoins, method: method, status: 'pending' }]);
-                userP.br_coins = newBal; updateUI(); notify("Withdraw Sent!");
+                userP.br_coins = newBal; 
+                updateUI(); 
+                notify("Withdraw Sent!");
+            } else {
+                notify("Withdrawal failed.");
             }
             buttonLoading('wd-btn', false);
         }
@@ -343,7 +370,7 @@
             const container = document.getElementById('wd-opts');
             let h = '';
             const rates = [{p:300,c:420}, {p:500,c:700}, {p:1000,c:1400}, {p:2000,c:2800}];
-            rates.forEach(o => h += `<div class="card" style="margin:0; text-align:center; border:2px solid #eee" onclick="setWd(${o.c}, ${o.p}, this)"><b>${o.p} PKR</b></div>`);
+            rates.forEach(o => h += `<div class="card" style="margin:0; text-align:center; border:2px solid #eee; cursor:pointer" onclick="setWd(${o.c}, ${o.p}, this)"><b>${o.p} PKR</b><br><small>${o.c} Coins</small></div>`);
             container.innerHTML = h;
         }
 
@@ -358,7 +385,7 @@
             let h = '';
             data?.forEach(w => {
                 let det = w.method === 'ep' ? `EP: ${w.profiles.ep_name} (${w.profiles.ep_no})` : w.method === 'jc' ? `JC: ${w.profiles.jc_name} (${w.profiles.jc_no})` : `USDT: ${w.profiles.usdt_addr}`;
-                h += `<div class="admin-sub-card"><b>${w.profiles.email}</b><br><span style="color:green">${w.amount_pkr} PKR</span><br><small>${det}</small><br><button class="btn" style="padding:5px; margin-top:5px" onclick="markPaid('${w.id}')">Mark Paid</button></div>`;
+                h += `<div class="admin-sub-card"><b>${w.profiles.email}</b><br><span style="color:green">${w.amount_pkr} PKR</span><br><small>${det}</small><br><button class="btn" style="padding:5px; margin-top:5px; height:auto; font-size:12px" onclick="markPaid('${w.id}')">Mark Paid</button></div>`;
             });
             document.getElementById('ad-withdrawals').innerHTML = h || 'No requests.';
         }
@@ -368,19 +395,5 @@
         async function fetchAdminTasks() {
             const { data } = await sb.from('tasks').select('*');
             let h = '';
-            data?.forEach(t => h += `<div class="admin-sub-card"><b>${t.title}</b><button class="btn btn-red" style="padding:5px; font-size:12px" onclick="deleteTask('${t.id}')">Delete Task</button></div>`);
-            document.getElementById('ad-task-manage').innerHTML = h || 'No tasks.';
-        }
-
-        async function deleteTask(id) { if(confirm("Delete Task?")) { await sb.from('tasks').delete().eq('id', id); fetchAdminTasks(); } }
-
-        async function createTask() {
-            const t = { title: document.getElementById('ad-t').value, link: document.getElementById('ad-l').value, stages: parseInt(document.getElementById('ad-s').value), stage_rewards: document.getElementById('ad-r').value, description: document.getElementById('ad-d').value };
-            await sb.from('tasks').insert([t]); notify("Task Created!"); fetchAdminTasks();
-        }
-
-        async function loginWithGoogle() { buttonLoading('login-btn', true); await sb.auth.signInWithOAuth({ provider: 'google' }); }
-        function logout() { sb.auth.signOut(); location.reload(); }
-    </script>
-</body>
-    </html>
+            data?.forEach(t => h += `<div class="admin-sub-card"><b>${t.title}</b><button class="btn btn-red" style="padding:5px; height:auto; font-size:12px" onclick="deleteTask('${t.id}')">Delete Task</button></div>`);
+         
