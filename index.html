@@ -191,10 +191,7 @@
 
         function setProfileField(id, val) {
             const el = document.getElementById(id);
-            if(val) {
-                el.value = val;
-                el.readOnly = true;
-            }
+            if(val) { el.value = val; el.readOnly = true; }
         }
 
         function updateUI() {
@@ -215,11 +212,10 @@
             });
         }
 
-        // --- PROFILE LOGIC (PERMANENT) ---
+        // --- PROFILE LOGIC ---
         async function saveProfile() {
             buttonLoading('save-prof-btn', true);
             const d = {};
-            // Only update fields that weren't already set
             if(!userP.ep_name) d.ep_name = document.getElementById('up-ep-n').value;
             if(!userP.ep_no) d.ep_no = document.getElementById('up-ep-v').value;
             if(!userP.jc_name) d.jc_name = document.getElementById('up-jc-n').value;
@@ -230,63 +226,69 @@
             if(!error) {
                 userP = { ...userP, ...d };
                 notify("Details Saved Permanently!");
-                initApp(); // Refresh readonly status
+                initApp();
             }
             buttonLoading('save-prof-btn', false);
         }
 
-        // --- WITHDRAW LOGIC (REAL TIME DEDUCTION) ---
+        // --- WITHDRAW LOGIC ---
         async function requestWithdraw() {
             if(selectedCoins === 0) return notify("Select amount!");
             if(userP.br_coins < selectedCoins) return notify("Not enough coins!");
             
             buttonLoading('wd-btn', true);
             const method = document.getElementById('wd-method').value;
-            
-            // Real-time coin deduction logic
             const newBal = userP.br_coins - selectedCoins;
             
-            // Update Database first
             const { error } = await sb.from('profiles').update({ br_coins: newBal }).eq('id', userP.id);
             
             if(!error) {
-                // Record the request
                 await sb.from('withdrawals').insert([{
-                    user_id: userP.id,
-                    amount_pkr: selectedPKR,
-                    amount_coins: selectedCoins,
-                    method: method,
-                    status: 'pending'
+                    user_id: userP.id, amount_pkr: selectedPKR, amount_coins: selectedCoins, method: method, status: 'pending'
                 }]);
-
-                // Update Local UI
                 userP.br_coins = newBal;
                 updateUI();
-                notify("Coins Deducted. Sent to Admin!");
-            } else {
-                notify("Error processing withdrawal.");
+                notify("Coins Deducted. Request Sent!");
             }
             buttonLoading('wd-btn', false);
         }
 
-        // --- ADMIN TASK MANAGEMENT ---
+        // --- TASK APPROVAL (NEW INTEGRATION) ---
+        async function approveStage(uid, tid, curr, rewardsStr) {
+            const rewards = rewardsStr.split(',').map(Number);
+            const amt = rewards[curr] || 0;
+            const nextStage = curr + 1;
+
+            const { error } = await sb.rpc('approve_task_stage', {
+                target_user_id: uid,
+                target_task_id: tid,
+                reward_amount: amt,
+                next_stage: nextStage
+            });
+
+            if (error) {
+                console.error(error);
+                notify("Error approving task");
+            } else {
+                notify(`Approved! ${amt} Coins sent.`);
+                fetchSubs();
+            }
+        }
+
+        // --- ADMIN TASKS ---
         async function fetchAdminTasks() {
             const { data } = await sb.from('tasks').select('*');
             let h = '';
             data?.forEach(t => {
-                h += `<div class="admin-sub-card">
-                    <b>${t.title}</b>
-                    <button class="btn btn-red" style="padding:5px; font-size:12px" onclick="deleteTask('${t.id}')">Delete Task</button>
-                </div>`;
+                h += `<div class="admin-sub-card"><b>${t.title}</b><button class="btn btn-red" style="padding:5px; font-size:12px" onclick="deleteTask('${t.id}')">Delete</button></div>`;
             });
-            document.getElementById('ad-task-manage').innerHTML = h || 'No tasks found.';
+            document.getElementById('ad-task-manage').innerHTML = h || 'No tasks.';
         }
 
         async function deleteTask(id) {
-            if(confirm("Are you sure you want to delete this task?")) {
+            if(confirm("Delete this task?")) {
                 await sb.from('tasks').delete().eq('id', id);
-                notify("Task Deleted!");
-                fetchAdminTasks();
+                notify("Deleted!"); fetchAdminTasks();
             }
         }
 
@@ -299,11 +301,10 @@
                 description: document.getElementById('ad-d').value
             };
             await sb.from('tasks').insert([t]);
-            notify("Task Created!");
-            fetchAdminTasks();
+            notify("Task Created!"); fetchAdminTasks();
         }
 
-        // --- EXISTING UTILS ---
+        // --- HELPERS ---
         function renderWd() {
             const container = document.getElementById('wd-opts');
             let h = '';
@@ -324,19 +325,14 @@
             data?.forEach(w => {
                 let details = w.method === 'ep' ? `EP: ${w.profiles.ep_name} (${w.profiles.ep_no})` : 
                               w.method === 'jc' ? `JC: ${w.profiles.jc_name} (${w.profiles.jc_no})` : `USDT: ${w.profiles.usdt_addr}`;
-                h += `<div class="admin-sub-card">
-                    <b>${w.profiles.email}</b><br>
-                    Amount: <span style="color:green">${w.amount_pkr} PKR</span><br>
-                    <small>${details}</small><br>
-                    <button class="btn" style="padding:5px; margin-top:5px" onclick="markPaid('${w.id}')">Mark as Paid</button>
-                </div>`;
+                h += `<div class="admin-sub-card"><b>${w.profiles.email}</b><br><span style="color:green">${w.amount_pkr} PKR</span><br><small>${details}</small><br><button class="btn" style="padding:5px; margin-top:5px" onclick="markPaid('${w.id}')">Mark Paid</button></div>`;
             });
-            document.getElementById('ad-withdrawals').innerHTML = h || '<p>No pending withdrawals.</p>';
+            document.getElementById('ad-withdrawals').innerHTML = h || '<p>No requests.</p>';
         }
 
         async function markPaid(id) {
             await sb.from('withdrawals').update({ status: 'paid' }).eq('id', id);
-            notify("Marked as Paid!"); fetchWithdrawals();
+            notify("Paid!"); fetchWithdrawals();
         }
 
         async function fetchTasks() {
@@ -351,15 +347,7 @@
                 for(let i=1; i<=t.stages; i++) lights += `<div class="light ${i <= sub.current_stage ? 'active' : ''}"></div>`;
                 let btnTxt = sub.status === 'pending' ? 'Verifying...' : 'Start Stage ' + (sub.current_stage + 1);
                 if(sub.current_stage >= t.stages) btnTxt = "Completed ✅";
-                h += `<div class="card">
-                    <span class="task-reward-tag">Prize: ${total} Coins</span>
-                    <b>${t.title}</b>
-                    <div class="stage-box">${lights}</div>
-                    <p style="font-size:12px">${t.description}</p>
-                    <button class="btn" ${sub.status === 'pending' || sub.current_stage >= t.stages ? 'disabled' : ''} onclick="startTask(this, '${t.id}', '${t.link}')">
-                        <div class="spinner"></div> <span>${btnTxt}</span>
-                    </button>
-                </div>`;
+                h += `<div class="card"><span class="task-reward-tag">Prize: ${total} Coins</span><b>${t.title}</b><div class="stage-box">${lights}</div><p style="font-size:12px">${t.description}</p><button class="btn" ${sub.status === 'pending' || sub.current_stage >= t.stages ? 'disabled' : ''} onclick="startTask(this, '${t.id}', '${t.link}')"><div class="spinner"></div> <span>${btnTxt}</span></button></div>`;
             });
             document.getElementById('task-list').innerHTML = h;
         }
@@ -378,22 +366,9 @@
             const { data } = await sb.from('task_submissions').select('*, profiles(email), tasks(title, stages, stage_rewards)').eq('status', 'pending');
             let h = '';
             data?.forEach(s => {
-                h += `<div class="admin-sub-card">
-                    <b>${s.profiles.email}</b> - ${s.tasks.title}<br>
-                    Approving Stage: ${s.current_stage + 1}<br>
-                    <button class="btn" style="padding:8px" onclick="approveStage('${s.user_id}', '${s.task_id}', ${s.current_stage}, '${s.tasks.stage_rewards}')">Approve & Pay</button>
-                </div>`;
+                h += `<div class="admin-sub-card"><b>${s.profiles.email}</b> - ${s.tasks.title}<br>Stage: ${s.current_stage + 1}<br><button class="btn" style="padding:8px" onclick="approveStage('${s.user_id}', '${s.task_id}', ${s.current_stage}, '${s.tasks.stage_rewards}')">Approve & Pay</button></div>`;
             });
             document.getElementById('ad-subs').innerHTML = h || 'No submissions.';
-        }
-
-        async function approveStage(uid, tid, curr, rewardsStr) {
-            const rewards = rewardsStr.split(',').map(Number);
-            const amt = rewards[curr] || 0;
-            const { data: p } = await sb.from('profiles').select('br_coins').eq('id', uid).single();
-            await sb.from('profiles').update({ br_coins: p.br_coins + amt }).eq('id', uid);
-            await sb.from('task_submissions').update({ current_stage: curr + 1, status: 'none' }).match({ user_id: uid, task_id: tid });
-            notify("Reward Sent!"); fetchSubs();
         }
 
         async function loginWithGoogle() { buttonLoading('login-btn', true); await sb.auth.signInWithOAuth({ provider: 'google' }); }
