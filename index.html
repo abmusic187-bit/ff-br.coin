@@ -242,7 +242,6 @@
             let h = '';
             tasks?.forEach(t => {
                 const sub = subs?.find(s => s.task_id == t.id) || { current_stage: 0, status: 'none' };
-                let r = t.stage_rewards.split(',').map(Number);
                 let lights = '';
                 for(let i=1; i<=t.stages; i++) lights += `<div class="light ${i <= sub.current_stage ? 'active' : ''}"></div>`;
                 let btnTxt = sub.status === 'pending' ? 'Verifying...' : `Start Stage ${sub.current_stage + 1}`;
@@ -252,10 +251,9 @@
             document.getElementById('task-list').innerHTML = h || 'No tasks.';
         }
 
-        // --- ADMIN (NEW ROBUST FETCH) ---
+        // --- ADMIN ---
         async function fetchSubs() {
             const subBox = document.getElementById('ad-subs');
-            // Fetch raw data
             const { data: rawSubs } = await sb.from('task_submissions').select('*').eq('status', 'pending');
             const { data: allProfs } = await sb.from('profiles').select('id, email');
             const { data: allTasks } = await sb.from('tasks').select('id, title, stage_rewards');
@@ -276,10 +274,26 @@
             subBox.innerHTML = h;
         }
 
+        // UPDATED APPROVE FUNCTION
         async function approveStage(uid, tid, curr, rStr) {
-            const amt = rStr.split(',').map(Number)[curr] || 0;
-            const { error } = await sb.rpc('approve_task_stage', { target_user_id: uid, target_task_id: tid, reward_amount: amt, next_stage: curr + 1 });
-            if (!error) { notify("Approved!"); fetchSubs(); } else { notify("Check Console"); console.error(error); }
+            const rewardsArray = rStr.split(',').map(Number);
+            const amt = rewardsArray[curr] || 0;
+            const nextS = curr + 1;
+
+            const { error } = await sb.rpc('approve_task_stage', { 
+                target_user_id: uid, 
+                target_task_id: tid, 
+                reward_amount: amt, 
+                next_stage: nextS 
+            });
+
+            if (!error) { 
+                notify("Success! User Paid."); 
+                fetchSubs(); 
+            } else { 
+                console.error("Full Error Object:", error);
+                notify("Failed: " + error.message); 
+            }
         }
 
         // --- OTHER UTILS ---
