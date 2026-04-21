@@ -12,7 +12,6 @@
         body { background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; }
         .hidden { display: none !important; }
 
-        /* UI Components */
         .app-header { 
             display: flex; justify-content: space-between; align-items: center; 
             padding: 15px 20px; background: white; border-top: 6px solid var(--blue);
@@ -48,7 +47,7 @@
         #toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 10001; background: #333; color: white; padding: 12px 20px; border-radius: 8px; display: none; }
         
         .task-reward-tag { color: var(--blue); font-weight: 800; font-size: 14px; margin-bottom: 5px; display: block; }
-        .admin-sub-card { border-left: 5px solid var(--blue); margin-bottom: 10px; padding: 10px; background: #f9f9f9; border-bottom: 1px solid #ddd; }
+        .admin-sub-card { border-left: 5px solid var(--blue); margin-bottom: 15px; padding: 15px; background: #f9f9f9; border-radius: 0 8px 8px 0; }
         .warning-text { color: var(--red); font-size: 11px; font-weight: bold; margin-bottom: 10px; display: block; }
     </style>
 </head>
@@ -97,7 +96,7 @@
             <p id="p-name">Loading...</p>
         </div>
         <div class="card">
-            <span class="warning-text">⚠️ Payment details are permanent once saved.</span>
+            <span class="warning-text">⚠️ Warning: Payment details are permanent.</span>
             <h4>EasyPaisa</h4>
             <input id="up-ep-n" placeholder="Account Name"> 
             <input id="up-ep-v" type="tel" placeholder="Mobile Number">
@@ -116,7 +115,7 @@
     <div id="view-admin" class="view hidden">
         <div class="card">
             <h4>Task Submissions (Approvals)</h4>
-            <div id="ad-subs"></div>
+            <div id="ad-subs">Loading submissions...</div>
         </div>
         <div class="card" style="border-top: 5px solid var(--red);">
             <h4>Withdrawal Requests</h4>
@@ -132,7 +131,7 @@
             <input id="ad-l" placeholder="Link">
             <input id="ad-s" type="number" placeholder="Stages (e.g. 3)"> 
             <input id="ad-r" placeholder="Rewards (e.g. 10,20,30)">
-            <textarea id="ad-d" placeholder="Task Instructions"></textarea>
+            <textarea id="ad-d" placeholder="Instructions"></textarea>
             <button class="btn" onclick="createTask()">Create Task</button>
         </div>
     </div>
@@ -151,7 +150,6 @@
         let userP = null, selectedCoins = 0, selectedPKR = 0;
         const ADMIN_EMAIL = "sa7530006@gmail.com";
 
-        // --- UTILS ---
         function notify(m) {
             const t = document.getElementById('toast');
             t.innerText = m; t.style.display = 'block';
@@ -170,15 +168,6 @@
             setTimeout(() => { if(callback) callback(); hideSplash(); }, 600);
         }
 
-        function buttonLoading(btnId, start) {
-            const btn = document.getElementById(btnId);
-            if(!btn) return;
-            const spin = btn.querySelector('.spinner');
-            if(start) { btn.disabled = true; if(spin) spin.style.display = 'block'; }
-            else { btn.disabled = false; if(spin) spin.style.display = 'none'; }
-        }
-
-        // --- AUTH ---
         window.onload = async () => {
             const { data: { user } } = await sb.auth.getUser();
             if (user) {
@@ -199,11 +188,9 @@
             setProfileField('up-jc-n', userP.jc_name);
             setProfileField('up-jc-v', userP.jc_no);
             setProfileField('up-usdt', userP.usdt_addr);
-
             document.getElementById('main-header').classList.remove('hidden');
             document.getElementById('main-nav').classList.remove('hidden');
             if(userP.email === ADMIN_EMAIL) document.getElementById('nav-admin').classList.remove('hidden');
-            
             document.querySelectorAll('.view').forEach(x => x.classList.add('hidden'));
             document.getElementById('view-home').classList.remove('hidden');
             renderWd();
@@ -233,32 +220,20 @@
             });
         }
 
-        // --- TASKS (CORRECTED UPSERT & IDs) ---
+        // --- TASKS ---
         async function startTask(btn, tid, link) {
-            const spin = btn.querySelector('.spinner');
-            const span = btn.querySelector('span');
-            btn.disabled = true; 
-            if(spin) spin.style.display = 'block'; 
-            if(span) span.innerText = "Processing...";
-            
+            btn.disabled = true;
             try {
-                if (!userP) throw new Error("Log in required");
                 const { error } = await sb.from('task_submissions').upsert({ 
                     user_id: userP.id, 
                     task_id: tid, 
                     status: 'pending' 
                 }, { onConflict: 'user_id,task_id' });
-                
                 if(error) throw error;
                 window.open(link, '_blank');
                 notify("Sent for Approval!");
-                await fetchTasks();
-            } catch (err) {
-                notify("Error: " + err.message);
-                btn.disabled = false; 
-                if(spin) spin.style.display = 'none'; 
-                if(span) span.innerText = "Try Again";
-            }
+                fetchTasks();
+            } catch (e) { notify("Error: " + e.message); btn.disabled = false; }
         }
 
         async function fetchTasks() {
@@ -267,45 +242,52 @@
             let h = '';
             tasks?.forEach(t => {
                 const sub = subs?.find(s => s.task_id == t.id) || { current_stage: 0, status: 'none' };
-                let rewardsArr = t.stage_rewards.split(',').map(Number);
-                let total = rewardsArr.reduce((a,b)=>a+b, 0);
+                let r = t.stage_rewards.split(',').map(Number);
                 let lights = '';
                 for(let i=1; i<=t.stages; i++) lights += `<div class="light ${i <= sub.current_stage ? 'active' : ''}"></div>`;
-                
-                let btnTxt = `Start Stage ${sub.current_stage + 1}`;
-                let isDis = false;
-                if(sub.status === 'pending') { btnTxt = 'Verifying...'; isDis = true; }
-                else if(sub.current_stage >= t.stages) { btnTxt = "Completed ✅"; isDis = true; }
-
-                h += `<div class="card"><span class="task-reward-tag">Prize: ${total} Coins</span><b>${t.title}</b><div class="stage-box">${lights}</div><p style="font-size:12px">${t.description}</p><button class="btn" ${isDis ? 'disabled' : ''} onclick="startTask(this, '${t.id}', '${t.link}')"><div class="spinner"></div> <span>${btnTxt}</span></button></div>`;
+                let btnTxt = sub.status === 'pending' ? 'Verifying...' : `Start Stage ${sub.current_stage + 1}`;
+                let isDis = sub.status === 'pending' || sub.current_stage >= t.stages;
+                h += `<div class="card"><b>${t.title}</b><div class="stage-box">${lights}</div><p style="font-size:12px">${t.description}</p><button class="btn" ${isDis ? 'disabled' : ''} onclick="startTask(this, '${t.id}', '${t.link}')"><span>${btnTxt}</span></button></div>`;
             });
-            document.getElementById('task-list').innerHTML = h || '<p style="text-align:center">No tasks.</p>';
+            document.getElementById('task-list').innerHTML = h || 'No tasks.';
         }
 
-        // --- ADMIN (PATCHED FOR VISIBILITY) ---
+        // --- ADMIN (NEW ROBUST FETCH) ---
         async function fetchSubs() {
-            const { data, error } = await sb.from('task_submissions').select('*, profiles(email), tasks(title, stages, stage_rewards)').eq('status', 'pending');
+            const subBox = document.getElementById('ad-subs');
+            // Fetch raw data
+            const { data: rawSubs } = await sb.from('task_submissions').select('*').eq('status', 'pending');
+            const { data: allProfs } = await sb.from('profiles').select('id, email');
+            const { data: allTasks } = await sb.from('tasks').select('id, title, stage_rewards');
+
+            if(!rawSubs || rawSubs.length === 0) { subBox.innerHTML = "No pending approvals."; return; }
+
             let h = '';
-            data?.forEach(s => {
-                h += `<div class="admin-sub-card"><b>User:</b> ${s.profiles?.email || 'N/A'}<br><b>Task:</b> ${s.tasks?.title || 'N/A'}<br><b>Stage:</b> ${s.current_stage + 1}<br><button class="btn" style="padding:8px; margin-top:5px; height:auto; width:auto;" onclick="approveStage('${s.user_id}', '${s.task_id}', ${s.current_stage}, '${s.tasks?.stage_rewards}')">Approve & Pay</button></div>`;
+            rawSubs.forEach(s => {
+                const user = allProfs?.find(p => p.id === s.user_id);
+                const task = allTasks?.find(t => t.id == s.task_id);
+                h += `<div class="admin-sub-card">
+                    <b>User:</b> ${user ? user.email : s.user_id}<br>
+                    <b>Task:</b> ${task ? task.title : s.task_id}<br>
+                    <b>Stage:</b> ${s.current_stage + 1}<br>
+                    <button class="btn" style="padding:8px; margin-top:10px; height:auto; width:auto;" onclick="approveStage('${s.user_id}', '${s.task_id}', ${s.current_stage}, '${task ? task.stage_rewards : '0'}')">Approve Stage</button>
+                </div>`;
             });
-            document.getElementById('ad-subs').innerHTML = h || 'No pending approvals.';
+            subBox.innerHTML = h;
         }
 
-        async function approveStage(uid, tid, curr, rewardsStr) {
-            const rewards = rewardsStr.split(',').map(Number);
-            const amt = rewards[curr] || 0;
+        async function approveStage(uid, tid, curr, rStr) {
+            const amt = rStr.split(',').map(Number)[curr] || 0;
             const { error } = await sb.rpc('approve_task_stage', { target_user_id: uid, target_task_id: tid, reward_amount: amt, next_stage: curr + 1 });
-            if (!error) { notify("Approved!"); fetchSubs(); } else notify("Error!");
+            if (!error) { notify("Approved!"); fetchSubs(); } else { notify("Check Console"); console.error(error); }
         }
 
-        // --- SHOP & PROFILE ---
+        // --- OTHER UTILS ---
         function renderWd() {
-            const container = document.getElementById('wd-opts');
-            let h = '';
             const rates = [{p:300,c:420}, {p:500,c:700}, {p:1000,c:1400}, {p:2000,c:2800}];
-            rates.forEach(o => h += `<div class="card" style="margin:0; text-align:center; border:2px solid #eee; cursor:pointer" onclick="setWd(${o.c}, ${o.p}, this)"><b>${o.p} PKR</b><br><small>${o.c} Coins</small></div>`);
-            container.innerHTML = h;
+            let h = '';
+            rates.forEach(o => h += `<div class="card" style="margin:0; text-align:center; border:2px solid #eee" onclick="setWd(${o.c}, ${o.p}, this)"><b>${o.p} PKR</b><br><small>${o.c} Coins</small></div>`);
+            document.getElementById('wd-opts').innerHTML = h;
         }
 
         function setWd(c, p, el) {
@@ -315,35 +297,29 @@
         }
 
         async function requestWithdraw() {
-            if(selectedCoins === 0) return notify("Select amount!");
-            if(userP.br_coins < selectedCoins) return notify("Low balance!");
-            buttonLoading('wd-btn', true);
+            if(selectedCoins === 0 || userP.br_coins < selectedCoins) return notify("Invalid Request");
             const method = document.getElementById('wd-method').value;
             const { error } = await sb.from('profiles').update({ br_coins: userP.br_coins - selectedCoins }).eq('id', userP.id);
             if(!error) {
                 await sb.from('withdrawals').insert([{ user_id: userP.id, amount_pkr: selectedPKR, amount_coins: selectedCoins, method: method, status: 'pending' }]);
                 userP.br_coins -= selectedCoins; updateUI(); notify("Withdraw Sent!");
             }
-            buttonLoading('wd-btn', false);
         }
 
         async function saveProfile() {
-            buttonLoading('save-prof-btn', true);
-            const d = {};
-            if(!userP.ep_name) d.ep_name = document.getElementById('up-ep-n').value;
-            if(!userP.ep_no) d.ep_no = document.getElementById('up-ep-v').value;
-            if(!userP.jc_name) d.jc_name = document.getElementById('up-jc-n').value;
-            if(!userP.jc_no) d.jc_no = document.getElementById('up-jc-v').value;
-            if(!userP.usdt_addr) d.usdt_addr = document.getElementById('up-usdt').value;
+            const d = {
+                ep_name: document.getElementById('up-ep-n').value, ep_no: document.getElementById('up-ep-v').value,
+                jc_name: document.getElementById('up-jc-n').value, jc_no: document.getElementById('up-jc-v').value,
+                usdt_addr: document.getElementById('up-usdt').value
+            };
             const { error } = await sb.from('profiles').update(d).eq('id', userP.id);
-            if(!error) { userP = { ...userP, ...d }; notify("Saved!"); initApp(); }
-            buttonLoading('save-prof-btn', false);
+            if(!error) { userP = {...userP, ...d}; notify("Saved!"); initApp(); }
         }
 
         async function fetchWithdrawals() {
-            const { data } = await sb.from('withdrawals').select('*, profiles(*)').eq('status', 'pending');
+            const { data } = await sb.from('withdrawals').select('*, profiles(email)').eq('status', 'pending');
             let h = '';
-            data?.forEach(w => h += `<div class="admin-sub-card"><b>${w.profiles?.email}</b><br>${w.amount_pkr} PKR via ${w.method}<br><button class="btn" style="padding:5px; height:auto; font-size:12px" onclick="markPaid('${w.id}')">Mark Paid</button></div>`);
+            data?.forEach(w => h += `<div class="admin-sub-card">${w.profiles?.email}<br>${w.amount_pkr} PKR (${w.method})<br><button class="btn" style="padding:5px; height:auto; width:auto" onclick="markPaid('${w.id}')">Paid</button></div>`);
             document.getElementById('ad-withdrawals').innerHTML = h || 'No requests.';
         }
 
@@ -351,7 +327,7 @@
         async function fetchAdminTasks() {
             const { data } = await sb.from('tasks').select('*');
             let h = '';
-            data?.forEach(t => h += `<div class="admin-sub-card"><b>${t.title}</b><button class="btn btn-red" style="padding:5px; height:auto; font-size:12px" onclick="deleteTask('${t.id}')">Delete</button></div>`);
+            data?.forEach(t => h += `<div class="admin-sub-card">${t.title}<button class="btn btn-red" style="padding:5px; height:auto; width:auto" onclick="deleteTask('${t.id}')">Delete</button></div>`);
             document.getElementById('ad-task-manage').innerHTML = h || 'No tasks.';
         }
         async function deleteTask(id) { if(confirm("Delete?")) { await sb.from('tasks').delete().eq('id', id); fetchAdminTasks(); } }
@@ -359,7 +335,6 @@
             const t = { title: document.getElementById('ad-t').value, link: document.getElementById('ad-l').value, stages: parseInt(document.getElementById('ad-s').value), stage_rewards: document.getElementById('ad-r').value, description: document.getElementById('ad-d').value };
             await sb.from('tasks').insert([t]); notify("Created!"); fetchAdminTasks();
         }
-
         async function loginWithGoogle() { await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } }); }
         function logout() { sb.auth.signOut(); location.reload(); }
     </script>
